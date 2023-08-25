@@ -239,6 +239,10 @@ class System:
 
         # Open the file for writing
         with open(self.name + ".pdb", 'w') as pdb_file:
+
+            # Write the opening line so vorpy knows what to expect
+            pdb_file.write("REMARK coarsify file")
+
             # Go through each atom in the system
             for res in residues:
 
