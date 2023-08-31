@@ -146,9 +146,12 @@ class System:
         res_colors = {'ALA': 'H', 'ARG': "He", 'ASN': 'Li', 'ASP': 'Be', 'ASX': 'B', 'CYS': 'C', 'GLN': 'F', 'GLU': 'O',
                       'GLX': 'S', 'GLY': 'Cl', 'HIS': 'Ar', 'ILE': 'Na', 'LEU': 'Mg', 'LYS': 'Mg', 'MET': 'Al',
                       'PHE': 'Si', 'PRO': 'P', 'SER': 'S', 'THR': 'Cl', 'TRP': 'Ar', 'TYR': 'K', 'VAL': 'Ca',
-                      'SOL': 'Ti'}
+                      'SOL': 'Ti', 'DA': 'N', 'DC': 'O', 'DG': 'F', 'DT': 'S'}
         for res in self.residues:
-            res.elem_col = res_colors[res.name]
+            if res.name in res_colors:
+                res.elem_col = res_colors[res.name]
+            else:
+                res.elem_col = 'Ti'
         # Set the atoms and the data
         self.atoms, self.data = DataFrame(atoms), data
 
