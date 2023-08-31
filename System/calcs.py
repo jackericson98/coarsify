@@ -60,3 +60,9 @@ def get_radius(atom):
                 if radii[radius] - atom['rad'] < min_diff:
                     atom['element'] = radii[radius]
     return atom['rad']
+
+
+def pdb_line(atom="ATOM", ser_num=0, name="", alt_loc=" ", res_name="", chain="A", res_seq=0, cfir="", x=0, y=0, z=0,
+             occ=1, tfact=0, seg_id="", elem="", charge=""):
+    return "{:<6}{:>5} {:<4}{:1}{:>3} {:^1}{:>4}{:1}   {:>8.3f}{:>8.3f}{:>8.3f}{:>6.2f}{:>6.2f}      {:<4}{:>2}{}\n"\
+        .format(atom, ser_num, name, alt_loc, res_name, chain, res_seq, cfir, x, y, z, occ, tfact, seg_id, elem, charge)

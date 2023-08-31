@@ -3,7 +3,7 @@ from pandas import DataFrame
 import numpy as np
 import os
 from System.objects import make_atom, Residue, Sol, Chain
-from System.calcs import calc_com, calc_dist, get_radius
+from System.calcs import calc_com, calc_dist, get_radius, pdb_line
 
 
 class System:
@@ -244,29 +244,23 @@ class System:
             pdb_file.write("REMARK coarsify file\n")
 
             # Go through each atom in the system
-            for res in residues:
+            for i, res in enumerate(residues):
 
-                # Get the location string
-                loc = ["{:.3f}".format(_) for _ in res.loc]
+                num = i
+                atom_name = res.elem_col
+                res_name = res.name
+                chain = res.chain.name
+                if chain == 'SOL':
+                    chain = " "
+                res_seq = res.seq
+                x, y, z = res.loc
+                occ = 1
+                tfact = res.rad
+                elem=res.elem_col
 
-                # Get the information from the atom in writable format
-                ser_num = " " * 5
-                file_name = res.name + " " * (4 - len(res.name))
-                residue = " " * (3 - len(str(res.seq))) + str(res.seq)
-                chain = ' '
-                res_seq = " " * (3 - len(str(res.seq))) + str(res.seq)
-                loc_strs = [" " * (7 - len(_)) + _ for _ in loc]
-                occupancy = " " * 5
-                t_fact = " " * (5 - len(str(round(res.rad, 3)))) + str(round(res.rad, 3))
-                if res.id is None:
-                    seg_id = '0  '
-                else:
-                    seg_id = res.id + " " * (3 - len(res.id))
-                symbol = res.elem_col
-                charge = ''
                 # Write the atom information
-                pdb_file.write("ATOM  " + ser_num + " " + file_name + " " + residue + " " + chain + res_seq + "    " +
-                               " ".join(loc_strs) + occupancy + t_fact + "      " + seg_id + symbol + charge + "\n")
+                pdb_file.write(pdb_line(ser_num=num, name=atom_name, res_name=res_name, chain=chain, res_seq=res_seq,
+                                        x=x, y=y, z=z, occ=occ, tfact=tfact, elem=elem))
         # Change back to the starting directory
         os.chdir(start_dir)
 
