@@ -53,7 +53,6 @@ class System:
         """
         Interprets pdb data into a system of atom objects
         :param self: System to add the pdb information to
-        :param file: .pdb file to be added to the system
         :return: list of tuples of locations and radii
         """
         # Check to see if the file is provided and use the base file if not
@@ -138,14 +137,16 @@ class System:
 
             # Assign the radius
             atom['rad'] = get_radius(atom)
-            # Add the atom to the atoms list
+            # If the residue numbers roll over reset the name of the residue to distinguish between the residues
             atoms.append(atom)
             if res_seq == 9999:
                 reset_checker += 1
+        # Set the colors for the residues based off the default colors for set elements
         res_colors = {'ALA': 'H', 'ARG': "He", 'ASN': 'Li', 'ASP': 'Be', 'ASX': 'B', 'CYS': 'C', 'GLN': 'F', 'GLU': 'O',
                       'GLX': 'S', 'GLY': 'Cl', 'HIS': 'Ar', 'ILE': 'Na', 'LEU': 'Mg', 'LYS': 'Mg', 'MET': 'Al',
                       'PHE': 'Si', 'PRO': 'P', 'SER': 'S', 'THR': 'Cl', 'TRP': 'Ar', 'TYR': 'K', 'VAL': 'Ca',
                       'SOL': 'Ti', 'DA': 'N', 'DC': 'O', 'DG': 'F', 'DT': 'S'}
+        # Set the residues' colors and let the default go to Titanium (Grey)
         for res in self.residues:
             if res.name in res_colors:
                 res.elem_col = res_colors[res.name]
@@ -154,46 +155,38 @@ class System:
         # Set the atoms and the data
         self.atoms, self.data = DataFrame(atoms), data
 
-    def load_sys(self, file=None):
-        """
-        Sets the base file for the system using one of the import file functions
-        :param file: .pdb, .gro, .mol, .cif
-        """
-        # If a file is given read the file and set the system attributes
-        if file is not None:
-            # Set the file
-            self.base_file = file
-
-        # Set the name of the system
-        self.name = path.basename(self.base_file)[:-4]
-
-        # Read PDB file
-        if self.base_file[-3:] == "pdb":
-            self.read_pdb()
-
     def print_info(self):
+        """
+        Prints the information for the loaded system
+        """
+        # Count the number of atoms, residues and chains and print their characteristics
         atoms_var = str(len(self.atoms)) + " Atoms"
         resids_var = str(len(self.residues)) + " Residues"
         chains_var = str(len(self.chains)) + " Chains: " + ", ".join(["{} - {} atoms, {} residues"
                             .format(_.name, len(_.atoms), len(_.residues)) for _ in self.chains])
+        # Create the variable for the SOL
         sol_var = ""
         if self.sol is not None:
             sol_var = self.sol.name + " - " + str(len(self.sol.residues)) + " residues"
+        # Print everything
         print(atoms_var, resids_var, chains_var, sol_var)
 
     def coarsify(self):
+        """
+        Main coarsify function. Calculates radii and location for residues
+        """
+        # Loop through the residues in the system
         for res in self.residues:
+            # Calculate the center of mass for the atoms in a residue
             res.loc = calc_com([_['loc'] for _ in res.atoms])
-            my_dists = [calc_dist(res.loc, atom['loc']) for atom in res.atoms]
-            max_rad = max(my_dists)
-            res.rad = max_rad + res.atoms[my_dists.index(max_rad)]['rad']
+            # Find the maximum of the summations of atom radii and the distance to residue com
+            res.rad = max([calc_dist(res.loc, atom['loc']) + atom['rad'] for atom in res.atoms])
 
     def set_dir(self, dir_name=None):
         """
         Sets the directory for the output data. If the directory exists add 1 to the end number
         :param self: System to assign the output directory to
         :param dir_name: Name for the directory
-        :return:
         """
         if not os.path.exists("./Data/user_data"):
             os.mkdir("./Data/user_data")
@@ -225,16 +218,11 @@ class System:
     def write_pdb(self):
         """
         Creates a pdb file type in the current working directory
-        :param residues: List of atom type objects for writing
-        :param file_name: Name of the output file
         :param self: System object used for writing the whole pbd file
-        :param directory: Output directory for the file
         :return: Writes a pdb file for the set of atoms
         """
-        residues = self.residues
-
         # Catch empty atoms cases
-        if residues is None or len(residues) == 0:
+        if self.residues is None or len(self.residues) == 0:
             return
         # Make note of the starting directory
         start_dir = os.getcwd()
@@ -248,12 +236,12 @@ class System:
             pdb_file.write("REMARK coarsify file\n")
 
             # Go through each atom in the system
-            for i, res in enumerate(residues):
+            for i, res in enumerate(self.residues):
 
                 atom_name = res.elem_col
                 res_name = res.name
                 chain = res.chain.name
-                if chain == 'SOL':
+                if chain == 'SOL' or chain == 'Z':
                     chain = " "
                 res_seq = res.seq
                 x, y, z = res.loc
@@ -267,11 +255,8 @@ class System:
         os.chdir(start_dir)
 
     def set_pymol_atoms(self):
-
         """
         Creates a script to set the radii of the spheres in pymol
-        :param self:
-        :return:
         """
         start_dir = os.getcwd()
         os.chdir(self.dir)
@@ -283,7 +268,6 @@ class System:
             # Rebuild the system
             file.write("\nrebuild")
         os.chdir(start_dir)
-
 
 
 ##################################################### Atomic Radii #####################################################
