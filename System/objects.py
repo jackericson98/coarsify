@@ -26,7 +26,7 @@ def make_atom(system=None, location=None, radius=None, index='', name='', residu
         'num': index,            # Number       :   The index from the initial atom file
         'name': name,            # Name         :   Name retrieved from pdb file
         'chain': chain,          # Chain        :   Molecule chain the atom is a part of
-        'residue': residue,      # Residue      :   Class of molecule that the atom is a part of
+        'residue': residue,      # Residue      :   String describing the residue type that the atom is a part of
         'res_seq': res_seq,      # Sequence     :   Sequence of the residue that the atom is a part of
         'seg_id': seg_id,        # Segment ID   :   Segment identifier for the atom
         'element': element,      # Symbol       :   Element of the atom

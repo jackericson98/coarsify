@@ -69,6 +69,7 @@ class System:
         self.chains, self.residues = [], []
         chains, resids = {}, {}
         # Go through each line in the file and check if the first word is the word we are looking for
+        reset_checker = 0
         for i in range(len(my_file)):
             # Check to make sure the line isn't empty
             if len(my_file[i]) == 0:
@@ -76,73 +77,71 @@ class System:
             # Pull the file line and first word
             line = my_file[i]
             word = line[:4].lower()
-            # Check to see if the line is an atom line
-            if line and word == 'atom':  # Check if the line starts with atom
-                # Check for the "m" situation
-                if line[76:78] == ' M':
-                    continue
-                name = line[12:16]
-                name.strip()
-                res_seq = line[22:26]
-                if line[22:26] == '    ':
-                    res_seq = 0
-                # Create the atom
-                atom = make_atom(location=np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])]),
-                                 system=self,
-                                 element=line[76:78].strip(), res_seq=int(res_seq), name=name, seg_id=line[72:76],
-                                 index=atom_count)
-
-                atom_count += 1
-                # If no chain is specified, set the chain to 'None'
-                res_str, chain_str = line[17:20].strip(), line[21]
-                if chain_str == ' ':
-                    if res_str.lower() in {'sol', 'hoh', 'sod'}:
-                        chain_str = 'SOL'
-                    elif res_str.lower() in {'cl', 'mg', 'na', 'k'} and 'SOL' in chains:
-                        chain_str = 'SOL'
-                    else:
-                        chain_str = 'A'
-                # Create the chain and residue dictionaries
-                res_name, chn_name = line[17:20] + str(atom['res_seq']), chain_str
-                # If the chain has been made before
-                if chn_name in chains:
-                    # Get the chain from the dictionary and add the atom
-                    my_chn = chains[chn_name]
-                    my_chn.add_atom(atom['num'])
-                    atom['chn'] = my_chn
-                # Create the chain
-                else:
-                    # If the chain is the sol chain
-                    if res_str.lower() == 'sol':
-                        my_chn = Sol(atoms=[atom['num']], residues=[], name=chn_name, sys=self)
-                        self.sol = my_chn
-                    # If the chain is not sol create a regular chain object
-                    else:
-                        my_chn = Chain(atoms=[atom['num']], residues=[], name=chn_name, sys=self)
-                        self.chains.append(my_chn)
-                    # Set the chain in the dictionary and give the atom it's chain
-                    chains[chn_name] = my_chn
-                    atom['chn'] = my_chn
-
-                # Assign the atoms and create the residues
-                if res_name in resids:
-                    my_res = resids[res_name]
-                    my_res.atoms.append(atom)
-                else:
-                    my_res = Residue(sys=self, atoms=[atom], name=res_str, sequence=atom['res_seq'], chain=atom['chn'])
-                    atom['chn'].residues.append(my_res)
-                    resids[res_name] = my_res
-                    self.residues.append(my_res)
-                # Assign the residue to the atom
-                atom['res'] = my_res
-
-                # Assign the radius
-                atom['rad'] = get_radius(atom)
-                # Add the atom to the atoms list
-                atoms.append(atom)
-            # If the line is not an atom line store the other data
-            else:
+            # Check to see if the line is an atom line. If the line is not an atom line store the other data
+            if line and word != 'atom':
                 data.append(my_file[i].split())
+                continue
+            # Check for the "m" situation
+            if line[76:78] == ' M':
+                continue
+            # Get the residue sequence of the atom
+            res_seq = int(line[22:27])
+            if line[22:26] == '    ':
+                res_seq = 0
+            # Create the atom
+            atom = make_atom(location=np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])]),
+                             system=self, element=line[76:78].strip(), res_seq=res_seq, name=line[12:16].strip(),
+                             seg_id=line[72:76], index=atom_count, chain=line[21], residue=line[17:21].strip())
+
+            atom_count += 1
+            # Collect the chain type for each atom
+            if atom['chain'] == ' ':
+                if atom['residue'].lower() in {'sol', 'hoh', 'sod'}:
+                    atom['chain'] = 'Z'
+                elif atom['residue'].lower() in {'cl', 'mg', 'na', 'k'} and 'Z' in chains:
+                    atom['chain'] = 'X'
+                else:
+                    atom['chain'] = 'A'
+            # Create the chain and residue dictionaries
+            res_name = atom['chain'] + atom['residue'] + str(atom['res_seq']) + str(reset_checker)
+            # If the chain has been made before
+            if atom['chain'] in chains:
+                # Get the chain from the dictionary and add the atom
+                my_chn = chains[atom['chain']]
+                my_chn.add_atom(atom['num'])
+                atom['chn'] = my_chn
+            # Create the chain
+            else:
+                # If the chain is the sol chain
+                if atom['chain'] == 'Z':
+                    my_chn = Sol(atoms=[atom['num']], residues=[], name=atom['chain'], sys=self)
+                    self.sol = my_chn
+                # If the chain is not sol create a regular chain object
+                else:
+                    my_chn = Chain(atoms=[atom['num']], residues=[], name=atom['chain'], sys=self)
+                    self.chains.append(my_chn)
+                # Set the chain in the dictionary and give the atom it's chain
+                chains[atom['chain']] = my_chn
+                atom['chn'] = my_chn
+
+            # Assign the atoms and create the residues
+            if res_name in resids:
+                my_res = resids[res_name]
+                my_res.atoms.append(atom)
+            else:
+                my_res = Residue(sys=self, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'], chain=atom['chn'])
+                atom['chn'].residues.append(my_res)
+                resids[res_name] = my_res
+                self.residues.append(my_res)
+            # Assign the residue to the atom
+            atom['res'] = my_res
+
+            # Assign the radius
+            atom['rad'] = get_radius(atom)
+            # Add the atom to the atoms list
+            atoms.append(atom)
+            if res_seq == 9999:
+                reset_checker += 1
         res_colors = {'ALA': 'H', 'ARG': "He", 'ASN': 'Li', 'ASP': 'Be', 'ASX': 'B', 'CYS': 'C', 'GLN': 'F', 'GLU': 'O',
                       'GLX': 'S', 'GLY': 'Cl', 'HIS': 'Ar', 'ILE': 'Na', 'LEU': 'Mg', 'LYS': 'Mg', 'MET': 'Al',
                       'PHE': 'Si', 'PRO': 'P', 'SER': 'S', 'THR': 'Cl', 'TRP': 'Ar', 'TYR': 'K', 'VAL': 'Ca',
@@ -185,7 +184,9 @@ class System:
     def coarsify(self):
         for res in self.residues:
             res.loc = calc_com([_['loc'] for _ in res.atoms])
-            res.rad = max([calc_dist(res.loc, atom['loc']) for atom in res.atoms])
+            my_dists = [calc_dist(res.loc, atom['loc']) for atom in res.atoms]
+            max_rad = max(my_dists)
+            res.rad = max_rad + res.atoms[my_dists.index(max_rad)]['rad']
 
     def set_dir(self, dir_name=None):
         """
