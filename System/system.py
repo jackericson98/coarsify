@@ -85,13 +85,13 @@ class System:
             if line[76:78] == ' M':
                 continue
             # Get the residue sequence of the atom
-            res_seq = int(line[22:27])
+            res_seq = int(line[22:26])
             if line[22:26] == '    ':
                 res_seq = 0
             # Create the atom
             atom = make_atom(location=np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])]),
                              system=self, element=line[76:78].strip(), res_seq=res_seq, name=line[12:16].strip(),
-                             seg_id=line[72:76], index=atom_count, chain=line[21], residue=line[17:21].strip())
+                             seg_id=line[72:76], index=atom_count, chain=line[21], residue=line[17:20].strip())
 
             atom_count += 1
             # Collect the chain type for each atom
@@ -250,7 +250,6 @@ class System:
             # Go through each atom in the system
             for i, res in enumerate(residues):
 
-                num = i
                 atom_name = res.elem_col
                 res_name = res.name
                 chain = res.chain.name
@@ -260,10 +259,9 @@ class System:
                 x, y, z = res.loc
                 occ = 1
                 tfact = res.rad
-                elem=res.elem_col
-
+                elem = res.elem_col
                 # Write the atom information
-                pdb_file.write(pdb_line(ser_num=num, name=atom_name, res_name=res_name, chain=chain, res_seq=res_seq,
+                pdb_file.write(pdb_line(ser_num=i, name=atom_name, res_name=res_name, chain=chain, res_seq=res_seq,
                                         x=x, y=y, z=z, occ=occ, tfact=tfact, elem=elem))
         # Change back to the starting directory
         os.chdir(start_dir)
