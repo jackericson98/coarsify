@@ -171,7 +171,7 @@ class System:
         # Print everything
         print(atoms_var, resids_var, chains_var, sol_var)
 
-    def coarsify(self):
+    def coarsify(self, average_dist=True, encapsulate=False, therm_cush=0.5):
         """
         Main coarsify function. Calculates radii and location for residues
         """
@@ -179,8 +179,13 @@ class System:
         for res in self.residues:
             # Calculate the center of mass for the atoms in a residue
             res.loc = calc_com([_['loc'] for _ in res.atoms])
-            # Find the maximum of the summations of atom radii and the distance to residue com
-            res.rad = max([calc_dist(res.loc, atom['loc']) + atom['rad'] for atom in res.atoms])
+            # Choose the scheme for coarse graining the residues
+            if average_dist:
+                # Find the average distance from the center of mass
+                res.rad = sum([calc_dist(res.loc, a['loc']) + a['rad'] for a in res.atoms])/len(res.atoms) + therm_cush
+            elif encapsulate:
+                # Find the maximum of the summations of atom radii and the distance to residue com
+                res.rad = max([calc_dist(res.loc, a['loc']) + a['rad'] for a in res.atoms]) + therm_cush
 
     def set_dir(self, dir_name=None):
         """
