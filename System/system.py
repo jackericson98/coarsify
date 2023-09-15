@@ -145,7 +145,8 @@ class System:
         res_colors = {'ALA': 'H', 'ARG': "He", 'ASN': 'Li', 'ASP': 'Be', 'ASX': 'B', 'CYS': 'C', 'GLN': 'F', 'GLU': 'O',
                       'GLX': 'S', 'GLY': 'Cl', 'HIS': 'Ar', 'ILE': 'Na', 'LEU': 'Mg', 'LYS': 'Mg', 'MET': 'Al',
                       'PHE': 'Si', 'PRO': 'P', 'SER': 'S', 'THR': 'Cl', 'TRP': 'Ar', 'TYR': 'K', 'VAL': 'Ca',
-                      'SOL': 'Ti', 'DA': 'N', 'DC': 'O', 'DG': 'F', 'DT': 'S'}
+                      'SOL': 'Ti', 'DA': 'N', 'DC': 'O', 'DG': 'F', 'DT': 'S', 'NA': 'NA', 'CL': 'CL', 'MG': 'MG',
+                      'K': 'K'}
         # Set the residues' colors and let the default go to Titanium (Grey)
         for res in self.residues:
             if res.name in res_colors:
@@ -246,7 +247,7 @@ class System:
                 atom_name = res.elem_col
                 res_name = res.name
                 chain = res.chain.name
-                if chain == 'SOL' or chain == 'Z':
+                if chain in ['SOL', 'Z', 'X']:
                     chain = " "
                 res_seq = res.seq
                 x, y, z = res.loc
