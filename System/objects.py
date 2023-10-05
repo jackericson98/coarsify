@@ -53,9 +53,6 @@ class Residue:
         self.id = seg_id
         self.chain = chain
         self.print_name = None
-        self.loc = None
-        self.rad = None
-        self.elem_col = None
 
     def add_atom(self, atom):
         self.atoms.append(atom)
@@ -81,3 +78,15 @@ class Sol(Chain):
         self.name = name
         self.vol = 0
         self.sa = 0
+
+
+class Ball:
+    def __init__(self, loc=None, rad=None, element=None, residues=None, atoms=None, name=None, chain=None, seq=None):
+        self.loc = loc
+        self.rad = rad
+        self.element = element
+        self.residues = residues
+        self.atoms = atoms
+        self.name = name
+        self.chain = chain
+        self.seq = seq
