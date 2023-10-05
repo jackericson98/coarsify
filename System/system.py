@@ -1,14 +1,12 @@
-import os.path as path
-from pandas import DataFrame
-import numpy as np
 import os
-from System.objects import make_atom, Residue, Sol, Chain
-from System.calcs import calc_com, calc_dist, get_radius, pdb_line
+from System.input import read_pdb
+from System.output import set_dir, write_pdb, write_pymol_atoms
+from System.coarsify import coarsify_basic, coarsify_CG
 
 
 class System:
     def __init__(self, file, atoms=None, output_directory=None, root_dir=None, print_actions=False, residues=None,
-                 chains=None, segments=None, output=True):
+                 chains=None, segments=None, output=True, scheme=None):
         """
         Class used to import files of all types and return a System
         :param file: Base system file address
@@ -30,6 +28,8 @@ class System:
         self.special_radii = special_radii  # Special Radii       :   List of special radius situations. Helpful for gro
         self.decimals = None                # Decimals            :   Decimals setting for the whole system
 
+        self.balls = None                   # Balls               :   Output for the program
+
         # Set up the file attributes
         self.data = None                    # Data                :   Additional data provided by the base file
         self.base_file = file               # Base file           :   Primary file address
@@ -43,7 +43,7 @@ class System:
         # Run the processes
         self.read_pdb()
         self.print_info()
-        self.coarsify()
+        self.coarsify(scheme=scheme)
         if output:
             self.set_dir()
             self.write_pdb()
@@ -55,106 +55,7 @@ class System:
         :param self: System to add the pdb information to
         :return: list of tuples of locations and radii
         """
-        # Check to see if the file is provided and use the base file if not
-        file = self.base_file
-
-        # Get the file information and make sure to close the file when done
-        with open(file, 'r') as f:
-            my_file = f.readlines()
-        # Add the system name and reset the atoms and data lists
-        self.name = path.basename(self.base_file)[:-4] + '_coarse'
-        # Set up the atom and the data lists
-        atoms, data, atom_count = [], [], 0
-        self.chains, self.residues = [], []
-        chains, resids = {}, {}
-        # Go through each line in the file and check if the first word is the word we are looking for
-        reset_checker = 0
-        for i in range(len(my_file)):
-            # Check to make sure the line isn't empty
-            if len(my_file[i]) == 0:
-                continue
-            # Pull the file line and first word
-            line = my_file[i]
-            word = line[:4].lower()
-            # Check to see if the line is an atom line. If the line is not an atom line store the other data
-            if line and word != 'atom':
-                data.append(my_file[i].split())
-                continue
-            # Check for the "m" situation
-            if line[76:78] == ' M':
-                continue
-            # Get the residue sequence of the atom
-            res_seq = int(line[22:26])
-            if line[22:26] == '    ':
-                res_seq = 0
-            # Create the atom
-            atom = make_atom(location=np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])]),
-                             system=self, element=line[76:78].strip(), res_seq=res_seq, name=line[12:16].strip(),
-                             seg_id=line[72:76], index=atom_count, chain=line[21], residue=line[17:20].strip())
-
-            atom_count += 1
-            # Collect the chain type for each atom
-            if atom['chain'] == ' ':
-                if atom['residue'].lower() in {'sol', 'hoh', 'sod'}:
-                    atom['chain'] = 'Z'
-                elif atom['residue'].lower() in {'cl', 'mg', 'na', 'k'} and 'Z' in chains:
-                    atom['chain'] = 'X'
-                else:
-                    atom['chain'] = 'A'
-            # Create the chain and residue dictionaries
-            res_name = atom['chain'] + atom['residue'] + str(atom['res_seq']) + str(reset_checker)
-            # If the chain has been made before
-            if atom['chain'] in chains:
-                # Get the chain from the dictionary and add the atom
-                my_chn = chains[atom['chain']]
-                my_chn.add_atom(atom['num'])
-                atom['chn'] = my_chn
-            # Create the chain
-            else:
-                # If the chain is the sol chain
-                if atom['chain'] == 'Z':
-                    my_chn = Sol(atoms=[atom['num']], residues=[], name=atom['chain'], sys=self)
-                    self.sol = my_chn
-                # If the chain is not sol create a regular chain object
-                else:
-                    my_chn = Chain(atoms=[atom['num']], residues=[], name=atom['chain'], sys=self)
-                    self.chains.append(my_chn)
-                # Set the chain in the dictionary and give the atom it's chain
-                chains[atom['chain']] = my_chn
-                atom['chn'] = my_chn
-
-            # Assign the atoms and create the residues
-            if res_name in resids:
-                my_res = resids[res_name]
-                my_res.atoms.append(atom)
-            else:
-                my_res = Residue(sys=self, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'], chain=atom['chn'])
-                atom['chn'].residues.append(my_res)
-                resids[res_name] = my_res
-                self.residues.append(my_res)
-            # Assign the residue to the atom
-            atom['res'] = my_res
-
-            # Assign the radius
-            atom['rad'] = get_radius(atom)
-            # If the residue numbers roll over reset the name of the residue to distinguish between the residues
-            atoms.append(atom)
-            if res_seq == 9999:
-                reset_checker += 1
-        # Set the colors for the residues based off the default colors for set elements
-        res_colors = {'ALA': 'H', 'ARG': "He", 'ASN': 'Li', 'ASP': 'Be', 'ASX': 'B', 'CYS': 'C', 'GLN': 'F', 'GLU': 'O',
-                      'GLX': 'S', 'GLY': 'Cl', 'HIS': 'Ar', 'ILE': 'Na', 'LEU': 'Mg', 'LYS': 'Mg', 'MET': 'Al',
-                      'PHE': 'Si', 'PRO': 'P', 'SER': 'S', 'THR': 'Cl', 'TRP': 'Ar', 'TYR': 'K', 'VAL': 'Ca',
-                      'SOL': 'Ti', 'DA': 'N', 'DC': 'O', 'DG': 'F', 'DT': 'S', 'NA': 'NA', 'CL': 'CL', 'MG': 'MG',
-                      'K': 'K'}
-        # Set the residues' colors and let the default go to Titanium (Grey)
-        for res in self.residues:
-            if res.name in res_colors:
-                res.elem_col = res_colors[res.name]
-            else:
-                res.elem_col = 'Ti'
-        # Set the atoms and the data
-        self.atoms, self.data = DataFrame(atoms), data
+        read_pdb(self)
 
     def print_info(self):
         """
@@ -172,21 +73,16 @@ class System:
         # Print everything
         print(atoms_var, resids_var, chains_var, sol_var)
 
-    def coarsify(self, average_dist=True, encapsulate=False, therm_cush=0.5):
+    def coarsify(self, scheme, therm_cush=0.0):
         """
         Main coarsify function. Calculates radii and location for residues
         """
-        # Loop through the residues in the system
-        for res in self.residues:
-            # Calculate the center of mass for the atoms in a residue
-            res.loc = calc_com([_['loc'] for _ in res.atoms])
-            # Choose the scheme for coarse graining the residues
-            if average_dist:
-                # Find the average distance from the center of mass
-                res.rad = sum([calc_dist(res.loc, a['loc']) + a['rad'] for a in res.atoms])/len(res.atoms) + therm_cush
-            elif encapsulate:
-                # Find the maximum of the summations of atom radii and the distance to residue com
-                res.rad = max([calc_dist(res.loc, a['loc']) + a['rad'] for a in res.atoms]) + therm_cush
+        if scheme == '1':
+            coarsify_basic(self, average_dist=True)
+        elif scheme == '2':
+            coarsify_basic(self, encapsulate=True)
+        elif scheme == '3':
+            coarsify_CG(self, therm_cush=therm_cush)
 
     def set_dir(self, dir_name=None):
         """
@@ -194,32 +90,7 @@ class System:
         :param self: System to assign the output directory to
         :param dir_name: Name for the directory
         """
-        if not os.path.exists("./Data/user_data"):
-            os.mkdir("./Data/user_data")
-        # If no outer directory was specified use the directory outside the current one
-        if dir_name is None:
-            if self.vpy_dir is not None:
-                dir_name = self.vpy_dir + "/Data/user_data/" + self.name
-            else:
-                dir_name = os.getcwd() + "/Data/user_data/" + self.name
-        # Catch for existing directories. Keep trying out directories until one doesn't exist
-        i = 0
-        while True:
-            # Try creating the directory with the system name + the current i_string
-            try:
-                # Create a string variable for the incrementing variable
-                i_str = '_' + str(i)
-                # If no file with the system name exists change the string to empty
-                if i == 0:
-                    i_str = ""
-                # Try to create the directory
-                os.mkdir(dir_name + i_str)
-                break
-            # If the file exists increment the counter and try creating the directory again
-            except FileExistsError:
-                i += 1
-        # Set the output directory for the system
-        self.dir = dir_name + i_str
+        set_dir(self, dir_name=dir_name)
 
     def write_pdb(self):
         """
@@ -227,53 +98,13 @@ class System:
         :param self: System object used for writing the whole pbd file
         :return: Writes a pdb file for the set of atoms
         """
-        # Catch empty atoms cases
-        if self.residues is None or len(self.residues) == 0:
-            return
-        # Make note of the starting directory
-        start_dir = os.getcwd()
-        # Change to the specified directory
-        os.chdir(self.dir)
-
-        # Open the file for writing
-        with open(self.name + ".pdb", 'w') as pdb_file:
-
-            # Write the opening line so vorpy knows what to expect
-            pdb_file.write("REMARK coarsify file\n")
-
-            # Go through each atom in the system
-            for i, res in enumerate(self.residues):
-
-                atom_name = res.elem_col
-                res_name = res.name
-                chain = res.chain.name
-                if chain in ['SOL', 'Z', 'X']:
-                    chain = " "
-                res_seq = res.seq
-                x, y, z = res.loc
-                occ = 1
-                tfact = res.rad
-                elem = res.elem_col
-                # Write the atom information
-                pdb_file.write(pdb_line(ser_num=i, name=atom_name, res_name=res_name, chain=chain, res_seq=res_seq,
-                                        x=x, y=y, z=z, occ=occ, tfact=tfact, elem=elem))
-        # Change back to the starting directory
-        os.chdir(start_dir)
+        write_pdb(self)
 
     def set_pymol_atoms(self):
         """
         Creates a script to set the radii of the spheres in pymol
         """
-        start_dir = os.getcwd()
-        os.chdir(self.dir)
-        # Create the file
-        with open('set_atoms.pml', 'w') as file:
-            for res in self.residues:
-                res_str = "residue {} ".format(res.seq) if res != "" else ""
-                file.write("alter ({}name {}), vdw={}\n".format(res_str, res.name, res.rad))
-            # Rebuild the system
-            file.write("\nrebuild")
-        os.chdir(start_dir)
+        write_pymol_atoms(self)
 
 
 ##################################################### Atomic Radii #####################################################
