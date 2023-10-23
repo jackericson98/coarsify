@@ -15,7 +15,7 @@ def read_pdb(sys):
     # Add the system name and reset the atoms and data lists
     sys.name = path.basename(sys.base_file)[:-4] + '_coarse'
     # Set up the atom and the data lists
-    atoms, data, atom_count = [], [], 0
+    atoms, data = [], []
     sys.chains, sys.residues = [], []
     chains, resids = {}, {}
     # Go through each line in the file and check if the first word is the word we are looking for
@@ -41,9 +41,7 @@ def read_pdb(sys):
         # Create the atom
         atom = make_atom(location=np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])]),
                          system=sys, element=line[76:78].strip(), res_seq=res_seq, name=line[12:16].strip(),
-                         seg_id=line[72:76], index=atom_count, chain=line[21], residue=line[17:20].strip())
-
-        atom_count += 1
+                         seg_id=line[72:76], index=line[6:11], chain=line[21], residue=line[17:20].strip())
         # Collect the chain type for each atom
         if atom['chain'] == ' ':
             if atom['residue'].lower() in {'sol', 'hoh', 'sod', 'w'}:

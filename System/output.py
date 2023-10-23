@@ -61,7 +61,7 @@ def write_pdb(sys):
             tfact = ball.rad
             elem = ball.element
             # Write the atom information
-            pdb_file.write(pdb_line(ser_num=i, name=atom_name, res_name=res_name, chain=chain, res_seq=res_seq,
+            pdb_file.write(pdb_line(ser_num=ball.index, name=atom_name, res_name=res_name, chain=chain, res_seq=res_seq,
                                     x=x, y=y, z=z, occ=occ, tfact=tfact, elem=elem))
     # Change back to the starting directory
     os.chdir(start_dir)
