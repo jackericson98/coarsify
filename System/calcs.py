@@ -50,8 +50,8 @@ def get_radius(atom):
     # If indicated we return the symbol of atom that the radius indicates
     if atom['rad'] is None or atom['rad'] == 0:
         # Check to see if the radius is in the system
-        if atom['rad'] in {radii[_] for _ in radii[1]}:
-            atom['element'] = radii[atom['rad']]
+        if atom['element'] in radii:
+            atom['rad'] = radii[atom['element']]
         else:
             # Get the closest atom to it
             min_diff = np.inf
