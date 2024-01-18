@@ -1,7 +1,10 @@
 import os
+from os import path
+import tkinter as tk
+from tkinter import filedialog
 from System.input import read_pdb
 from System.output import set_dir, write_pdb, write_pymol_atoms
-from System.coarsify import coarsify_basic, coarsify_CG
+from System.coarsify import coarsify_sc_bb, coarsify_encapsulate, coarsify_martini, coarsify_avg_dist, coarsify_c_alpha
 
 
 class System:
@@ -26,6 +29,7 @@ class System:
 
         self.radii = my_radii               # Radii               :   List of atomic radii
         self.special_radii = special_radii  # Special Radii       :   List of special radius situations. Helpful for gro
+        self.bb_names = bb_names            #
         self.decimals = None                # Decimals            :   Decimals setting for the whole system
 
         self.balls = None                   # Balls               :   Output for the program
@@ -45,9 +49,7 @@ class System:
         self.print_info()
         self.coarsify(scheme=scheme)
         if output:
-            self.set_dir()
-            self.write_pdb()
-            self.set_pymol_atoms()
+            self.output()
 
     def read_pdb(self):
         """
@@ -78,11 +80,35 @@ class System:
         Main coarsify function. Calculates radii and location for residues
         """
         if scheme == '1':
-            coarsify_basic(self, average_dist=True)
+            coarsify_avg_dist(self)
         elif scheme == '2':
-            coarsify_basic(self, encapsulate=True)
+            coarsify_encapsulate(self)
         elif scheme == '3':
-            coarsify_CG(self, therm_cush=therm_cush)
+            coarsify_sc_bb(self, therm_cush)
+        elif scheme == '4':
+            coarsify_c_alpha(self, therm_cush)
+        elif scheme == '5':
+            coarsify_martini(self, therm_cush)
+
+    def output(self):
+        """
+        Outputs the information for the coarsified data
+        """
+        # Choose whether to output to user_data, the original folder, or some other folder
+        output_dir_selection = input("Choose output location: \n    1. ../coarsify/Data/user_data \n    2. {}\n    3. Other Directory\n    >>>  ".format(path.dirname(self.base_file)))
+        # Set the output directory
+        if output_dir_selection == 1:
+            self.set_dir()
+        elif output_dir_selection == 2:
+            self.set_dir(path.dirname(self.base_file))
+        else:
+            root = tk.Tk()
+            root.withdraw()
+            self.dir = filedialog.askdirectory()
+        # Write the pdb
+        write_pdb(self)
+        # Create the setting script for pymol
+        write_pymol_atoms(self)
 
     def set_dir(self, dir_name=None):
         """
@@ -91,20 +117,6 @@ class System:
         :param dir_name: Name for the directory
         """
         set_dir(self, dir_name=dir_name)
-
-    def write_pdb(self):
-        """
-        Creates a pdb file type in the current working directory
-        :param self: System object used for writing the whole pbd file
-        :return: Writes a pdb file for the set of atoms
-        """
-        write_pdb(self)
-
-    def set_pymol_atoms(self):
-        """
-        Creates a script to set the radii of the spheres in pymol
-        """
-        write_pymol_atoms(self)
 
 
 ##################################################### Atomic Radii #####################################################
@@ -136,3 +148,5 @@ special_radii = {''   : {'C': 1.75, 'CA': 1.90, 'N': 1.70, 'O': 1.49, 'F': 1.33,
                  'TRP': {'CB': 1.91, 'CD': 1.82, 'CE': 1.82, 'CE2': 1.74, 'CG': 1.74, 'CH': 1.82, 'CZ': 1.82, 'NE1': 1.66},
                  'TYR': {'CB': 1.91, 'CD': 1.82, 'CE': 1.82, 'CG': 1.74, 'CZ': 1.80, 'OH': 1.54},
                  'VAL': {'CB': 2.01, 'CG1': 1.92, 'CG2': 1.92}}
+
+bb_names = {'CA', 'HA', 'N', 'HN', 'H', 'C', 'O'}
