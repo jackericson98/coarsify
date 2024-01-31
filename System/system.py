@@ -4,12 +4,13 @@ import tkinter as tk
 from tkinter import filedialog
 from System.input import read_pdb
 from System.output import set_dir, write_pdb, write_pymol_atoms
-from System.coarsify import coarsify_sc_bb, coarsify_encapsulate, coarsify_martini, coarsify_avg_dist, coarsify_c_alpha
+from System.coarsify import (coarsify_sc_bb, coarsify_encapsulate, coarsify_martini, coarsify_avg_dist,
+                             coarsify_c_alpha, coarsify_primo)
 
 
 class System:
     def __init__(self, file, atoms=None, output_directory=None, root_dir=None, print_actions=False, residues=None,
-                 chains=None, segments=None, output=True, scheme=None):
+                 chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0):
         """
         Class used to import files of all types and return a System
         :param file: Base system file address
@@ -47,7 +48,7 @@ class System:
         # Run the processes
         self.read_pdb()
         self.print_info()
-        self.coarsify(scheme=scheme)
+        self.coarsify(scheme=scheme, therm_cush=thermal_cushion)
         if output:
             self.output()
 
@@ -80,14 +81,16 @@ class System:
         Main coarsify function. Calculates radii and location for residues
         """
         if scheme == '1':
-            coarsify_avg_dist(self)
+            coarsify_avg_dist(self, therm_cush)
         elif scheme == '2':
-            coarsify_encapsulate(self)
+            coarsify_encapsulate(self, therm_cush)
         elif scheme == '3':
             coarsify_sc_bb(self, therm_cush)
         elif scheme == '4':
             coarsify_c_alpha(self, therm_cush)
         elif scheme == '5':
+            coarsify_primo(self, therm_cush)
+        elif scheme == '6':
             coarsify_martini(self, therm_cush)
 
     def output(self):
@@ -95,11 +98,15 @@ class System:
         Outputs the information for the coarsified data
         """
         # Choose whether to output to user_data, the original folder, or some other folder
-        output_dir_selection = input("Choose output location: \n    1. ../coarsify/Data/user_data \n    2. {}\n    3. Other Directory\n    >>>  ".format(path.dirname(self.base_file)))
+        output_dir_selection = input("Choose output location: \n\n"
+                                     "1. Coarsify User Data     ->      ../coarsify/Data/user_data \n"
+                                     "2. Original File Location ->  {}\n"
+                                     "3. Other Directory        ->  (Opens Folder Dialog Window)\n"
+                                     "  >>>  ".format(path.dirname(self.base_file)))
         # Set the output directory
-        if output_dir_selection == 1:
+        if output_dir_selection == '1':
             self.set_dir()
-        elif output_dir_selection == 2:
+        elif output_dir_selection == '2':
             self.set_dir(path.dirname(self.base_file))
         else:
             root = tk.Tk()
@@ -109,6 +116,7 @@ class System:
         write_pdb(self)
         # Create the setting script for pymol
         write_pymol_atoms(self)
+        write_pymol_atoms(self, set_sol=False)
 
     def set_dir(self, dir_name=None):
         """
