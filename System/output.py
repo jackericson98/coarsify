@@ -48,6 +48,8 @@ def write_pdb(sys):
 
         # Go through each atom in the system
         for i, ball in enumerate(sys.balls):
+            if ball.index is None:
+                ball.index = i
             atom_name = ball.element
             if ball.name == 'W':
                 ball.name = 'SOL'
@@ -67,12 +69,18 @@ def write_pdb(sys):
     os.chdir(start_dir)
 
 
-def write_pymol_atoms(sys):
+def write_pymol_atoms(sys, set_sol=True):
     start_dir = os.getcwd()
     os.chdir(sys.dir)
+    if set_sol:
+        file_name = 'set_atoms_all.pml'
+    else:
+        file_name = 'set_atoms_no_sol.pml'
     # Create the file
-    with open('set_atoms.pml', 'w') as file:
+    with open(file_name, 'w') as file:
         for ball in sys.balls:
+            if not set_sol and ball.name.lower() == 'sol':
+                continue
             res_str = "residue {} ".format(ball.seq) if ball != "" else ""
             file.write("alter ({}name {}), vdw={}\n".format(res_str, ball.name, ball.rad))
         # Rebuild the system
