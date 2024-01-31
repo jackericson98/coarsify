@@ -112,3 +112,14 @@ def coarsify_martini(sys, therm_cush=0.0):
         # Create the ball
         sys.balls.append(Ball(loc=atom['loc'], rad=rad, element=atom['res'].elem_col, residues=atom['res'],
                               name=atom['residue'], chain=atom['chn'], seq=atom['res'].seq, index=atom['num']))
+
+
+def coarsify_primo(sys, therm_cush=0.0):
+    """
+    primo coarse graining model
+    :param sys:
+    :param therm_cush:
+    :return:
+    """
+    sys.balls = []
+    return
