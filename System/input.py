@@ -51,7 +51,7 @@ def read_pdb(sys):
             else:
                 atom['chain'] = 'A'
         # Create the chain and residue dictionaries
-        res_name = atom['chain'] + atom['residue'] + str(atom['res_seq']) + str(reset_checker)
+        res_name = atom['chain'] + '_' + atom['residue'] + '_' + str(atom['res_seq']) + '_' + str(reset_checker)
         # If the chain has been made before
         if atom['chain'] in chains:
             # Get the chain from the dictionary and add the atom

@@ -48,12 +48,30 @@ def coarsify_sc_bb(sys, avg_dist=True, therm_cush=0.5):
         sys.balls = []
     # Loop through the residues in the system
     for res in sys.residues:
+        # If the residue is water we don't need to worry about backbone and side chain
+        if res.chain.name in {'Z', 'X'}:
+            # Calculate the center of mass for the atoms in a residue
+            loc = calc_com([_['loc'] for _ in res.atoms])
+            # Find the average distance from the center of mass
+            if avg_dist:
+                rad = sum([calc_dist(loc, a['loc']) + a['rad'] for a in res.atoms]) / len(res.atoms) + therm_cush
+            else:
+                # Find the maximum of the summations of atom radii and the distance to residue com
+                rad = max([calc_dist(loc, a['loc']) + a['rad'] for a in res.atoms]) + therm_cush
+            # Create the ball object
+            sys.balls.append(Ball(loc=loc, rad=rad, element=res.elem_col, residues=[res], atoms=res.atoms,
+                                  name=res.name, chain=res.chain, seq=res.seq))
+            continue
         # Get the back bone atoms and the side chain atoms
         bb_atoms = [_ for _ in res.atoms if _['name'] in sys.bb_names]
         sc_atoms = [_ for _ in res.atoms if _['name'] not in sys.bb_names]
         # Calculate the center of mass for the atoms in a residue
-        bb_loc = calc_com([_['loc'] for _ in bb_atoms])
-        sc_loc = calc_com([_['loc'] for _ in sc_atoms])
+        try:
+            bb_loc = calc_com([_['loc'] for _ in bb_atoms])
+            sc_loc = calc_com([_['loc'] for _ in sc_atoms])
+        except IndexError:
+            print(res.name, res.chain.name, len(res.atoms), [_['name'] for _ in res.atoms])
+            continue
         # Choose the scheme for coarse graining the residues
         if avg_dist:
             # Find the average distance from the center of mass for the backbone
@@ -67,9 +85,9 @@ def coarsify_sc_bb(sys, avg_dist=True, therm_cush=0.5):
             sc_rad = max([calc_dist(sc_loc, a['loc']) + a['rad'] for a in sc_atoms]) + therm_cush
         # Create the ball object
         sys.balls += [Ball(loc=bb_loc, rad=bb_rad, element=res.elem_col, residues=[res], atoms=res.atoms, name=res.name,
-                              chain=res.chain, seq=res.seq),
-                      Ball(loc=sc_loc, rad=sc_rad, element=res.elem_col, residues=[res], atoms=res.atoms, name=res.name,
-                             chain=res.chain, seq=res.seq)]
+                           chain=res.chain, seq=res.seq, residue_subsection='bb'),
+                      Ball(loc=sc_loc, rad=sc_rad, element='pb', residues=[res], atoms=res.atoms, name=res.name,
+                           chain=res.chain, seq=res.seq, residue_subsection='sc')]
 
 
 def coarsify_c_alpha(sys, therm_cush=0.0):

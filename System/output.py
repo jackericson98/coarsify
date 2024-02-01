@@ -50,6 +50,7 @@ def write_pdb(sys):
         for i, ball in enumerate(sys.balls):
             if ball.index is None:
                 ball.index = i
+            ball.index %= 100000
             atom_name = ball.element
             if ball.name == 'W':
                 ball.name = 'SOL'
@@ -59,7 +60,11 @@ def write_pdb(sys):
                 chain = " "
             res_seq = ball.seq
             x, y, z = ball.loc
-            occ = 1
+            occ = 0
+            if ball.sub_section == 'bb':
+                occ = 1
+            elif ball.sub_section == 'sc':
+                occ = 2
             tfact = ball.rad
             elem = ball.element
             # Write the atom information
@@ -82,7 +87,7 @@ def write_pymol_atoms(sys, set_sol=True):
             if not set_sol and ball.name.lower() == 'sol':
                 continue
             res_str = "residue {} ".format(ball.seq) if ball != "" else ""
-            file.write("alter ({}name {}), vdw={}\n".format(res_str, ball.name, ball.rad))
+            file.write("alter ({}name {}), vdw={}\n".format(res_str, ball.name, round(ball.rad, 3)))
         # Rebuild the system
         file.write("\nrebuild")
     os.chdir(start_dir)
