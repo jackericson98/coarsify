@@ -44,7 +44,8 @@ def write_pdb(sys):
     with open(sys.name + ".pdb", 'w') as pdb_file:
 
         # Write the opening line so vorpy knows what to expect
-        pdb_file.write("REMARK coarsify file\n")
+        pdb_file.write("REMARK coarsify file - Scheme = {}, Thermal Cushion = {}\n"
+                       .format(sys.scheme, sys.therm_cush))
 
         # Go through each atom in the system
         for i, ball in enumerate(sys.balls):
