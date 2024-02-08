@@ -20,6 +20,8 @@ class System:
 
         # Names
         self.name = None                    # Name                :   Name describing the system
+        self.scheme = scheme                # CG Scheme           :   The scheme by which the atoms are coarse grained-
+        self.therm_cush = thermal_cushion   # Thermal Cushion     :   How much additional radius is given to each ball
 
         # Loadable objects
         self.atoms = atoms                  # Atoms               :   List holding the atom objects
@@ -30,7 +32,10 @@ class System:
 
         self.radii = my_radii               # Radii               :   List of atomic radii
         self.special_radii = special_radii  # Special Radii       :   List of special radius situations. Helpful for gro
-        self.bb_names = bb_names            #
+        self.aminos = amino_acids
+        self.amino_bbs = amino_bbs
+        self.nucleics = nucleic_acids
+        self.nucleic_bbs = nucleic_bbs
         self.decimals = None                # Decimals            :   Decimals setting for the whole system
 
         self.balls = None                   # Balls               :   Output for the program
@@ -92,6 +97,8 @@ class System:
             coarsify_primo(self, therm_cush)
         elif scheme == '6':
             coarsify_martini(self, therm_cush)
+        self.scheme = {'1': 'Average Distance', '2': 'Encapsulate', '3': 'Backbone Side-chain', '4': 'Alpha Carbon',
+                       '5': 'Primo', '6': 'CG Martini'}[self.scheme]
 
     def output(self):
         """
@@ -157,4 +164,10 @@ special_radii = {''   : {'C': 1.75, 'CA': 1.90, 'N': 1.70, 'O': 1.49, 'F': 1.33,
                  'TYR': {'CB': 1.91, 'CD': 1.82, 'CE': 1.82, 'CG': 1.74, 'CZ': 1.80, 'OH': 1.54},
                  'VAL': {'CB': 2.01, 'CG1': 1.92, 'CG2': 1.92}}
 
-bb_names = {'CA', 'HA', 'N', 'HN', 'H', 'C', 'O'}
+amino_acids = {'ALA', 'ARB', 'ASN', 'ASP', 'CYS', 'GLN', 'GLU', 'HIS', 'ILE', 'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER',
+               'THR', 'TRP', 'TYR', 'VAL', 'GLY', 'ARG'}
+amino_bbs = {'CA', 'HA', 'N', 'HN', 'H', 'C', 'O'}
+
+nucleic_acids = {'DT', 'DA', 'DG', 'DC', 'DU', 'U', 'G', 'A', 'T', 'C'}
+nucleic_bbs = {'P', 'O1P', 'O2P', 'C5\'', 'O5\'', 'C4\'', 'O4\'', 'C3\'', 'O3\'', 'C2\'', 'C1\'', 'H1\'', 'H3\'', 'H4\'', 'H2\'1', 'H2\'2', 'H5\'1', 'H5\'2', 'H5T'}
+nucleic_sc_names = {'N1', 'C2', 'N2', 'O2', 'O4', 'N3', 'C4', 'C5', 'C6', 'C7', 'N4', 'N6', 'N7', 'H2', 'H5', 'H6', 'H41', 'H42', 'O6', 'N7', 'C8', 'N9', 'H1', 'H8', 'H21', 'H22', 'H61', 'H62'}
