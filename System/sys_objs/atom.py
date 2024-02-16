@@ -1,5 +1,3 @@
-
-
 def make_atom(system=None, location=None, radius=None, index='', name='', residue='', chain='', res_seq="", seg_id="",
               element="", chn=None, res=None):
     atom = {
@@ -32,64 +30,3 @@ def make_atom(system=None, location=None, radius=None, index='', name='', residu
         'element': element,      # Symbol       :   Element of the atom
     }
     return atom
-
-
-class Residue:
-    def __init__(self, atoms=None, name=None, sys=None, mol=None, sequence=None, seg_id=None, chain=None):
-        """
-        Residue Object for holding specific residue information
-        :param atoms:
-        :param name:
-        :param sys:
-        :param mol:
-        :param sequence:
-        :param seg_id:
-        """
-        self.atoms = atoms
-        self.name = name
-        self.sys = sys
-        self.mol = mol
-        self.seq = sequence
-        self.id = seg_id
-        self.chain = chain
-        self.print_name = None
-
-    def add_atom(self, atom):
-        self.atoms.append(atom)
-
-
-class Chain:
-    def __init__(self, sys=None, atoms=None, residues=None, name=None):
-        self.name = name
-        self.atoms = atoms
-        self.residues = residues
-        self.vol = 0
-        self.sa = 0
-
-    def add_atom(self, atom):
-        self.atoms.append(atom)
-
-
-class Sol(Chain):
-    def __init__(self, sys=None, atoms=None, residues=None, name="H2O"):
-        super().__init__()
-        self.atoms = atoms
-        self.residues = residues
-        self.name = name
-        self.vol = 0
-        self.sa = 0
-
-
-class Ball:
-    def __init__(self, loc=None, rad=None, element=None, residues=None, atoms=None, name=None, chain=None, seq=None,
-                 index=None, residue_subsection=None):
-        self.loc = loc
-        self.rad = rad
-        self.element = element
-        self.residues = residues
-        self.atoms = atoms
-        self.name = name
-        self.chain = chain
-        self.seq = seq
-        self.index = index
-        self.sub_section = residue_subsection

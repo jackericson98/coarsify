@@ -1,4 +1,4 @@
-from System.calcs import pdb_line
+from System.sys_funcs.calcs import pdb_line
 import os
 
 
@@ -51,7 +51,7 @@ def write_pdb(sys):
         for i, ball in enumerate(sys.balls):
             if ball.index is None:
                 ball.index = i
-            ball.index %= 100000
+            ball.index = str(int(ball.index) % 100000)
             atom_name = ball.element
             if ball.name == 'W':
                 ball.name = 'SOL'

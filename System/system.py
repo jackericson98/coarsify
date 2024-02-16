@@ -1,11 +1,12 @@
-import os
 from os import path
 import tkinter as tk
 from tkinter import filedialog
-from System.input import read_pdb
-from System.output import set_dir, write_pdb, write_pymol_atoms
-from System.coarsify import (coarsify_sc_bb, coarsify_encapsulate, coarsify_martini, coarsify_avg_dist,
-                             coarsify_c_alpha, coarsify_primo)
+from System.sys_funcs.input import read_pdb
+from System.sys_funcs.output import set_dir, write_pdb, write_pymol_atoms
+from System.schemes.basic import coarsify_avg_dist, coarsify_encapsulate
+from System.schemes.martini import coarsify_martini
+from System.schemes.sc_bb import coarsify_sc_bb
+from System.schemes.primo import coarsify_primo
 
 
 class System:
@@ -92,7 +93,7 @@ class System:
         elif scheme == '3':
             coarsify_sc_bb(self, therm_cush)
         elif scheme == '4':
-            coarsify_c_alpha(self, therm_cush)
+            coarsify_sc_bb(self, therm_cush, nuc_loc='', am_loc='CA')
         elif scheme == '5':
             coarsify_primo(self, therm_cush)
         elif scheme == '6':
