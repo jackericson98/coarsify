@@ -20,5 +20,6 @@ if __name__ == '__main__':
         thermal_cushion = 0.0
     root = tk.Tk()
     root.withdraw()
+    root.wm_attributes('-topmost', 1)
     file = filedialog.askopenfilename()
     sys = System(file=file, scheme=scheme, thermal_cushion=thermal_cushion)
