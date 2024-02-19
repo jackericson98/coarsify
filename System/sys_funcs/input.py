@@ -1,6 +1,8 @@
 from os import path
 from System.sys_funcs.calcs import get_radius
-from System.sys_objs.chain import make_atom, Sol, Chain, Residue
+from System.sys_objs.chain import Sol, Chain
+from System.sys_objs.atom import make_atom
+from System.sys_objs.residue import Residue
 import numpy as np
 from pandas import DataFrame
 
