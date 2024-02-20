@@ -35,8 +35,11 @@ class System:
         self.special_radii = special_radii  # Special Radii       :   List of special radius situations. Helpful for gro
         self.aminos = amino_acids
         self.amino_bbs = amino_bbs
+        self.amino_scs = amino_scs
+        self.amino_ignores = []
         self.nucleics = nucleic_acids
         self.nucleic_bbs = nucleic_bbs
+        self.nucleic_ignores = []
         self.decimals = None                # Decimals            :   Decimals setting for the whole system
 
         self.balls = None                   # Balls               :   Output for the program
@@ -91,7 +94,7 @@ class System:
         elif scheme == '2':
             coarsify_encapsulate(self, therm_cush)
         elif scheme == '3':
-            coarsify_sc_bb(self, therm_cush)
+            coarsify_sc_bb(self, therm_cush=therm_cush)
         elif scheme == '4':
             coarsify_sc_bb(self, therm_cush, nuc_loc='', am_loc='CA')
         elif scheme == '5':
@@ -167,8 +170,14 @@ special_radii = {''   : {'C': 1.75, 'CA': 1.90, 'N': 1.70, 'O': 1.49, 'F': 1.33,
 
 amino_acids = {'ALA', 'ARB', 'ASN', 'ASP', 'CYS', 'GLN', 'GLU', 'HIS', 'ILE', 'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER',
                'THR', 'TRP', 'TYR', 'VAL', 'GLY', 'ARG'}
-amino_bbs = {'CA', 'HA', 'N', 'HN', 'H', 'C', 'O'}
+amino_bbs = ['CA', 'HA', 'HA1', 'HA2', 'N', 'HN', 'H', 'C', 'O', 'OC1', 'OC2', 'OT1', 'OT2', 'H1', 'H2', 'H3']
+amino_scs = ['CB', 'HB', 'HB1', 'HB2', 'HB3',
+             'SD', 'CD', 'CD1', 'CD2', 'ND1', 'ND2', 'OD1', 'OD2', 'HD1', 'HD2', 'HD3', 'HD11', 'HD12', 'HD13', 'HD21', 'HD22', 'HD23'
+             , 'CE', 'CE1', 'CE2', 'CE3', 'OE1', 'OE2', 'NE', 'NE1', 'NE2', 'HE', 'HE1', 'HE2', 'HE3', 'HE21', 'HE22',
+             'CG', 'CG1', 'CG2', 'OG', 'SG', 'OG1', 'HG', 'HG1', 'HG2', 'HG11', 'HG12', 'HG13', 'HG21', 'HG22', 'HG23',
+             'CH2', 'NH1', 'OH', 'HH', 'HH1', 'HH2', 'HH11', 'HH12', 'NH2', 'HH21', 'HH22',
+             'NZ', 'CZ', 'CZ1', 'CZ2', 'CZ3', 'NZ', 'HZ', 'HZ1', 'HZ2', 'HZ3']
 
 nucleic_acids = {'DT', 'DA', 'DG', 'DC', 'DU', 'U', 'G', 'A', 'T', 'C'}
-nucleic_bbs = {'P', 'O1P', 'O2P', 'C5\'', 'O5\'', 'C4\'', 'O4\'', 'C3\'', 'O3\'', 'C2\'', 'C1\'', 'H1\'', 'H3\'', 'H4\'', 'H2\'1', 'H2\'2', 'H5\'1', 'H5\'2', 'H5T'}
-nucleic_sc_names = {'N1', 'C2', 'N2', 'O2', 'O4', 'N3', 'C4', 'C5', 'C6', 'C7', 'N4', 'N6', 'N7', 'H2', 'H5', 'H6', 'H41', 'H42', 'O6', 'N7', 'C8', 'N9', 'H1', 'H8', 'H21', 'H22', 'H61', 'H62'}
+nucleic_bbs = ['P', 'O1P', 'O2P', 'C5\'', 'O5\'', 'C4\'', 'O4\'', 'C3\'', 'O3\'', 'C2\'', 'C1\'', 'H1\'', 'H3\'', 'H4\'', 'H2\'1', 'H2\'2', 'H5\'1', 'H5\'2', 'H5T']
+nucleic_sc_names = ['N1', 'C2', 'N2', 'O2', 'O4', 'N3', 'C4', 'C5', 'C6', 'C7', 'N4', 'N6', 'N7', 'H2', 'H5', 'H6', 'H41', 'H42', 'O6', 'N7', 'C8', 'N9', 'H1', 'H8', 'H21', 'H22', 'H61', 'H62']
