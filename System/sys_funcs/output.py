@@ -87,8 +87,7 @@ def write_pymol_atoms(sys, set_sol=True):
         for ball in sys.balls:
             if not set_sol and ball.name.lower() == 'sol':
                 continue
-            res_str = "residue {} ".format(ball.seq) if ball != "" else ""
-            file.write("alter ({}name {}), vdw={}\n".format(res_str, ball.name, round(ball.rad, 3)))
+            file.write("alter (resn {} and resi {} and name {}), vdw={}\n".format(ball.name, ball.seq, ball.element, round(ball.rad, 3)))
         # Rebuild the system
         file.write("\nrebuild")
     os.chdir(start_dir)
