@@ -94,9 +94,9 @@ class System:
         elif scheme == '2':
             coarsify_encapsulate(self, therm_cush)
         elif scheme == '3':
-            coarsify_sc_bb(self, therm_cush=therm_cush)
+            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=True)
         elif scheme == '4':
-            coarsify_sc_bb(self, therm_cush, nuc_loc='', am_loc='CA')
+            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=False)
         elif scheme == '5':
             coarsify_primo(self, therm_cush)
         elif scheme == '6':
