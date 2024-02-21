@@ -38,7 +38,9 @@ class System:
         self.amino_scs = amino_scs
         self.amino_ignores = []
         self.nucleics = nucleic_acids
-        self.nucleic_bbs = nucleic_bbs
+        self.nucleic_sugrs = nucleic_sugrs
+        self.nucleic_pphte = nucleic_pphte
+        self.nucleic_nbase = nucleic_nbase
         self.nucleic_ignores = []
         self.decimals = None                # Decimals            :   Decimals setting for the whole system
 
@@ -179,5 +181,6 @@ amino_scs = ['CB', 'HB', 'HB1', 'HB2', 'HB3',
              'NZ', 'CZ', 'CZ1', 'CZ2', 'CZ3', 'NZ', 'HZ', 'HZ1', 'HZ2', 'HZ3']
 
 nucleic_acids = {'DT', 'DA', 'DG', 'DC', 'DU', 'U', 'G', 'A', 'T', 'C'}
-nucleic_bbs = ['P', 'O1P', 'O2P', 'C5\'', 'O5\'', 'C4\'', 'O4\'', 'C3\'', 'O3\'', 'C2\'', 'C1\'', 'H1\'', 'H3\'', 'H4\'', 'H2\'1', 'H2\'2', 'H5\'1', 'H5\'2', 'H5T']
-nucleic_sc_names = ['N1', 'C2', 'N2', 'O2', 'O4', 'N3', 'C4', 'C5', 'C6', 'C7', 'N4', 'N6', 'N7', 'H2', 'H5', 'H6', 'H41', 'H42', 'O6', 'N7', 'C8', 'N9', 'H1', 'H8', 'H21', 'H22', 'H61', 'H62']
+nucleic_sugrs = ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'C2', 'C4', 'C5', 'C6', 'C7', 'C8', 'O2', 'O4', 'O6']
+nucleic_nbase = ['O3\'', 'O5\'', 'C5\'', 'C4\'', 'O4\'', 'C3\'', 'C2\'', 'C1\'']
+nucleic_pphte = ['P', 'O1P', 'O2P', 'OP1', 'OP2']
