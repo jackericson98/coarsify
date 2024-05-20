@@ -13,13 +13,21 @@ if __name__ == '__main__':
                    " (5) Primo - Primo Coarse graining scheme\n"
                    " (6) CG Martini - Pre-processed pdb files using cg-martini\n\n"
                    " >>>   ")
+    # Give the option to add a thermal cushion for the balls
     thermal_cushion = input("Add a thermal cushion? (Y/N)")
-    if thermal_cushion in ['Y', 'y', 'Yes', 'yes']:
+    if thermal_cushion.lower() in ['y', 'yes']:
         thermal_cushion = float(input('Enter cushion (in Angstroms) >>>'))
     else:
         thermal_cushion = 0.0
+    # Give the option to include/exclude hydrogens
+    include_h = input('Include Hydrogens? (Y/N)')
+    if include_h.lower() in ['y', 'yes']:
+        include_h = True
+    else:
+        include_h = False
+
     root = tk.Tk()
     root.withdraw()
     root.wm_attributes('-topmost', 1)
     file = filedialog.askopenfilename()
-    sys = System(file=file, scheme=scheme, thermal_cushion=thermal_cushion)
+    sys = System(file=file, scheme=scheme, thermal_cushion=thermal_cushion, include_h=include_h)

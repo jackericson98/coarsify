@@ -11,7 +11,7 @@ from System.schemes.primo import coarsify_primo
 
 class System:
     def __init__(self, file, atoms=None, output_directory=None, root_dir=None, print_actions=False, residues=None,
-                 chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0):
+                 chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0, include_h=True):
         """
         Class used to import files of all types and return a System
         :param file: Base system file address
@@ -23,6 +23,7 @@ class System:
         self.name = None                    # Name                :   Name describing the system
         self.scheme = scheme                # CG Scheme           :   The scheme by which the atoms are coarse grained-
         self.therm_cush = thermal_cushion   # Thermal Cushion     :   How much additional radius is given to each ball
+        self.include_h = include_h
 
         # Loadable objects
         self.atoms = atoms                  # Atoms               :   List holding the atom objects
@@ -92,13 +93,13 @@ class System:
         Main coarsify function. Calculates radii and location for residues
         """
         if scheme == '1':
-            coarsify_avg_dist(self, therm_cush)
+            coarsify_avg_dist(self, therm_cush, include_h=self.include_h)
         elif scheme == '2':
-            coarsify_encapsulate(self, therm_cush)
+            coarsify_encapsulate(self, therm_cush, include_h=self.include_h)
         elif scheme == '3':
-            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=True)
+            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=True, include_h=self.include_h)
         elif scheme == '4':
-            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=False)
+            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=False, include_h=self.include_h)
         elif scheme == '5':
             coarsify_primo(self, therm_cush)
         elif scheme == '6':

@@ -2,7 +2,7 @@ from System.sys_funcs.calcs import calc_com, calc_dist
 from System.sys_objs.ball import Ball
 
 
-def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=None):
+def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=None, include_h=True):
     """
     Main coarsify function. Calculates radii and location for residues
     """
@@ -11,11 +11,16 @@ def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=Non
         sys.balls = []
     # Loop through the residues in the system
     for res in sys.residues:
+        # If we are including hydrogens
+        if include_h:
+            res_atoms = res.atoms
+        else:
+            res_atoms = [_ for _ in res.atoms if _['element'].lower() != 'h']
         # If the residue is water we don't need to worry about backbone and side chain
         if res.name in sys.nucleics:
             sugs, phos, nbase, hs = [], [], [], []
             # Get the back bone atoms and the side chain atoms
-            for atom in res.atoms:
+            for atom in res_atoms:
                 if atom['element'].lower() == 'h':
                     hs.append(atom)
                 elif atom['name'] in sys.nucleic_pphte:
@@ -50,7 +55,7 @@ def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=Non
 
             # Sort the Hydrogens
             for atom in hs:
-                atom_dists = [(calc_dist(atom['loc'], _['loc']), _) for _ in res.atoms if _['element'].lower() != 'h']
+                atom_dists = [(calc_dist(atom['loc'], _['loc']), _) for _ in res_atoms if _['element'].lower() != 'h']
                 near_atoms = sorted(atom_dists, key=lambda x: x[0])
                 close_atom = near_atoms[0][1]
                 if close_atom['name'] in sys.nucleic_pphte:
@@ -86,18 +91,18 @@ def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=Non
                 nbas_rad = max([calc_dist(nbas_loc, a['loc']) + a['rad'] for a in nbase]) + therm_cush
             # Create the ball object
             if len(phos) > 0:
-                sys.balls.append(Ball(loc=ph_loc, rad=ph_rad, element=res.elem_col, residues=[res], atoms=res.atoms,
+                sys.balls.append(Ball(loc=ph_loc, rad=ph_rad, element=res.elem_col, residues=[res], atoms=res_atoms,
                                       name=res.name, chain=res.chain, seq=res.seq, residue_subsection='phosphate'))
             sys.balls += [
-                Ball(loc=sug_loc, rad=sug_rad, element='pb', residues=[res], atoms=res.atoms, name=res.name,
+                Ball(loc=sug_loc, rad=sug_rad, element='pb', residues=[res], atoms=res_atoms, name=res.name,
                      chain=res.chain, seq=res.seq, residue_subsection='sugar'),
-                Ball(loc=nbas_loc, rad=nbas_rad, element='pb', residues=[res], atoms=res.atoms, name=res.name,
+                Ball(loc=nbas_loc, rad=nbas_rad, element='pb', residues=[res], atoms=res_atoms, name=res.name,
                      chain=res.chain, seq=res.seq, residue_subsection='nbase')
             ]
         elif res.name in sys.aminos:
             bb_atoms, sc_atoms = [], []
             # Get the back bone atoms and the side chain atoms
-            for atom in res.atoms:
+            for atom in res_atoms:
                 if atom['name'] in sys.amino_bbs:
                     bb_atoms.append(atom)
                 elif atom['name'] in sys.amino_scs:
@@ -138,19 +143,19 @@ def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=Non
                 sc_rad = max([calc_dist(sc_loc, a['loc']) + a['rad'] for a in sc_atoms]) + therm_cush
             # Create the ball object
             sys.balls += [
-                Ball(loc=bb_loc, rad=bb_rad, element=res.elem_col, residues=[res], atoms=res.atoms, name=res.name,
+                Ball(loc=bb_loc, rad=bb_rad, element=res.elem_col, residues=[res], atoms=res_atoms, name=res.name,
                      chain=res.chain, seq=res.seq, residue_subsection='bb'),
-                Ball(loc=sc_loc, rad=sc_rad, element='pb', residues=[res], atoms=res.atoms, name=res.name,
+                Ball(loc=sc_loc, rad=sc_rad, element='pb', residues=[res], atoms=res_atoms, name=res.name,
                      chain=res.chain, seq=res.seq, residue_subsection='sc')]
         else:
             # Calculate the center of mass for the atoms in a residue
-            loc = calc_com([_['loc'] for _ in res.atoms])
+            loc = calc_com([_['loc'] for _ in res_atoms])
             # Find the average distance from the center of mass
             if avg_dist:
-                rad = sum([calc_dist(loc, a['loc']) + a['rad'] for a in res.atoms]) / len(res.atoms) + therm_cush
+                rad = sum([calc_dist(loc, a['loc']) + a['rad'] for a in res_atoms]) / len(res_atoms) + therm_cush
             else:
                 # Find the maximum of the summations of atom radii and the distance to residue com
-                rad = max([calc_dist(loc, a['loc']) + a['rad'] for a in res.atoms]) + therm_cush
+                rad = max([calc_dist(loc, a['loc']) + a['rad'] for a in res_atoms]) + therm_cush
             # Create the ball object
-            sys.balls.append(Ball(loc=loc, rad=rad, element=res.elem_col, residues=[res], atoms=res.atoms,
+            sys.balls.append(Ball(loc=loc, rad=rad, element=res.elem_col, residues=[res], atoms=res_atoms,
                                   name=res.name, chain=res.chain, seq=res.seq))
