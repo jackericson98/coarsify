@@ -13,6 +13,7 @@ if __name__ == '__main__':
                    " (5) Primo - Primo Coarse graining scheme\n"
                    " (6) CG Martini - Pre-processed pdb files using cg-martini\n\n"
                    " >>>   ")
+    # Give the option to add a thermal cushion for the balls
     thermal_cushion = input("Add a thermal cushion? (Y/N)")
     if thermal_cushion in ['Y', 'y', 'Yes', 'yes']:
         thermal_cushion = float(input('Enter cushion (in Angstroms) >>>'))
