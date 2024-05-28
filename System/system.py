@@ -11,7 +11,7 @@ from System.schemes.primo import coarsify_primo
 
 class System:
     def __init__(self, file, atoms=None, output_directory=None, root_dir=None, print_actions=False, residues=None,
-                 chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0):
+                 chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0, mass_weighted=True):
         """
         Class used to import files of all types and return a System
         :param file: Base system file address
@@ -59,7 +59,7 @@ class System:
         # Run the processes
         self.read_pdb()
         self.print_info()
-        self.coarsify(scheme=scheme, therm_cush=thermal_cushion)
+        self.coarsify(scheme=scheme, therm_cush=thermal_cushion, mass_weighted=mass_weighted)
         if output:
             self.output()
 
@@ -87,16 +87,16 @@ class System:
         # Print everything
         print(atoms_var, resids_var, chains_var, sol_var)
 
-    def coarsify(self, scheme, therm_cush=0.0):
+    def coarsify(self, scheme, therm_cush=0.0, mass_weighted=True):
         """
         Main coarsify function. Calculates radii and location for residues
         """
         if scheme == '1':
-            coarsify_avg_dist(self, therm_cush)
+            coarsify_avg_dist(self, therm_cush, mass_weighted=mass_weighted)
         elif scheme == '2':
             coarsify_encapsulate(self, therm_cush)
         elif scheme == '3':
-            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=True)
+            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=True, mass_weighted=mass_weighted)
         elif scheme == '4':
             coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=False)
         elif scheme == '5':

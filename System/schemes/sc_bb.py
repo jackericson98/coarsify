@@ -2,7 +2,7 @@ from System.sys_funcs.calcs import calc_com, calc_dist
 from System.sys_objs.ball import Ball
 
 
-def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=None):
+def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=None, mass_weighted=True):
     """
     Main coarsify function. Calculates radii and location for residues
     """

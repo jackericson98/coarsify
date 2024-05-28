@@ -18,8 +18,9 @@ if __name__ == '__main__':
         thermal_cushion = float(input('Enter cushion (in Angstroms) >>>'))
     else:
         thermal_cushion = 0.0
+    mass_weighted = input('Mass Weighted')
     root = tk.Tk()
     root.withdraw()
     root.wm_attributes('-topmost', 1)
     file = filedialog.askopenfilename()
-    sys = System(file=file, scheme=scheme, thermal_cushion=thermal_cushion)
+    sys = System(file=file, scheme=scheme, thermal_cushion=thermal_cushion, mass_weighted=mass_weighted)
