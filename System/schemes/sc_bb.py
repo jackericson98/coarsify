@@ -25,9 +25,9 @@ def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=Non
                     hs.append(atom)
                 elif atom['name'] in sys.nucleic_pphte:
                     phos.append(atom)
-                elif atom['name'] in sys.nucleic_sugrs:
-                    sugs.append(atom)
                 elif atom['name'] in sys.nucleic_nbase:
+                    sugs.append(atom)
+                elif atom['name'] in sys.nucleic_sugr:
                     nbase.append(atom)
                 elif atom['name'] in sys.nucleic_ignores:
                     continue
@@ -40,11 +40,11 @@ def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=Non
                         phos.append(atom)
                         print("{} will be added to nucleic phosphate grups from here on out".format(atom['name']))
                     elif sc_bb_add == '2':
-                        sys.nucleic_sugrs.append(atom['name'])
+                        sys.nucleic_nbase.append(atom['name'])
                         sugs.append(atom)
                         print("{} will be added to nucleic ribose groups from here on out".format(atom['name']))
                     elif sc_bb_add == 3:
-                        sys.nucleic_nbase.append(atom['name'])
+                        sys.nucleic_sugr.append(atom['name'])
                         nbase.append(atom)
                         print("{} will be added to nucleic bases from here on out".format(atom['name']))
                     elif sc_bb_add == 4:
@@ -60,9 +60,9 @@ def coarsify_sc_bb(sys, avg_dist=False, therm_cush=0.5, nuc_loc=None, am_loc=Non
                 close_atom = near_atoms[0][1]
                 if close_atom['name'] in sys.nucleic_pphte:
                     phos.append(atom)
-                elif close_atom['name'] in sys.nucleic_sugrs:
-                    sugs.append(atom)
                 elif close_atom['name'] in sys.nucleic_nbase:
+                    sugs.append(atom)
+                elif close_atom['name'] in sys.nucleic_sugr:
                     nbase.append(atom)
                 elif close_atom['name'] in sys.nucleic_ignores:
                     continue
