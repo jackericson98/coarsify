@@ -42,7 +42,7 @@ def coarsify(sys):
                     phos.append(atom)
                 elif atom['name'] in sys.nucleic_nbase:
                     sugs.append(atom)
-                elif atom['name'] in sys.nucleic_sugr:
+                elif atom['name'] in sys.nucleic_sugrs:
                     nbase.append(atom)
                 elif atom['name'] in sys.nucleic_ignores:
                     continue
@@ -77,7 +77,7 @@ def coarsify(sys):
                     phos.append(atom)
                 elif close_atom['name'] in sys.nucleic_nbase:
                     sugs.append(atom)
-                elif close_atom['name'] in sys.nucleic_sugr:
+                elif close_atom['name'] in sys.nucleic_sugrs:
                     nbase.append(atom)
                 elif close_atom['name'] in sys.nucleic_ignores:
                     continue
