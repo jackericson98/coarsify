@@ -1,18 +1,19 @@
+import os
 from os import path
 import tkinter as tk
 from tkinter import filedialog
 from System.sys_funcs.input import read_pdb
 from System.sys_funcs.output import set_dir, write_pdb, write_pymol_atoms
-from System.schemes.basic import coarsify_avg_dist, coarsify_encapsulate
 from System.schemes.martini import coarsify_martini
-from System.schemes.sc_bb import coarsify_sc_bb
+from System.schemes.basic import coarsify
 from System.schemes.primo import coarsify_primo
+from GUI import settings_gui
 
 
 class System:
-    def __init__(self, file, atoms=None, output_directory=None, root_dir=None, print_actions=False, residues=None,
+    def __init__(self, file=None, atoms=None, output_directory=None, root_dir=None, print_actions=False, residues=None,
                  chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0, include_h=True,
-                 mass_weighted=True):
+                 mass_weighted=True, sc_bb=None):
         """
         Class used to import files of all types and return a System
         :param file: Base system file address
@@ -25,6 +26,8 @@ class System:
         self.scheme = scheme                # CG Scheme           :   The scheme by which the atoms are coarse grained-
         self.therm_cush = thermal_cushion   # Thermal Cushion     :   How much additional radius is given to each ball
         self.include_h = include_h
+        self.mass_weighted = mass_weighted
+        self.sc_bb = sc_bb
 
         # Loadable objects
         self.atoms = atoms                  # Atoms               :   List holding the atom objects
@@ -34,6 +37,7 @@ class System:
         self.sol = None                     # Solution            :   List of solution molecules (lists of atoms)
 
         self.radii = my_radii               # Radii               :   List of atomic radii
+        self.masses = my_masses
         self.special_radii = special_radii  # Special Radii       :   List of special radius situations. Helpful for gro
         self.aminos = amino_acids
         self.amino_bbs = amino_bbs
@@ -55,15 +59,26 @@ class System:
         self.vpy_dir = root_dir             # Vorpy Directory     :   Directory that vorpy is running out of
         self.max_atom_rad = 0               # Max atom rad        :   Largest radius of the system for reference
 
-        # Gui
+        # Print Actions
         self.print_actions = print_actions  # Print actions Bool  :   Tells the system to print or not
 
         # Run the processes
+        my_vals = settings_gui()
+        self.get_vals(my_vals)
         self.read_pdb()
         self.print_info()
-        self.coarsify(scheme=scheme, therm_cush=thermal_cushion, mass_weighted=mass_weighted)
-        if output:
-            self.output()
+        self.coarsify()
+        os.mkdir(self.dir + '/' + self.name)
+        self.output(self.dir)
+
+    def get_vals(self, my_vals):
+        self.include_h = my_vals['include h']
+        self.base_file = my_vals['input file']
+        self.scheme = my_vals['cg method']
+        self.mass_weighted = my_vals['mass weighted']
+        self.therm_cush = my_vals['thermal cushion']
+        self.sc_bb = my_vals['sc bb']
+        self.dir = my_vals['output folder']
 
     def read_pdb(self):
         """
@@ -81,7 +96,7 @@ class System:
         atoms_var = str(len(self.atoms)) + " Atoms"
         resids_var = str(len(self.residues)) + " Residues"
         chains_var = str(len(self.chains)) + " Chains: " + ", ".join(["{} - {} atoms, {} residues"
-                            .format(_.name, len(_.atoms), len(_.residues)) for _ in self.chains])
+                     .format(_.name, len(_.atoms), len(_.residues)) for _ in self.chains])
         # Create the variable for the SOL
         sol_var = ""
         if self.sol is not None:
@@ -89,44 +104,35 @@ class System:
         # Print everything
         print(atoms_var, resids_var, chains_var, sol_var)
 
-    def coarsify(self, scheme, therm_cush=0.0, mass_weighted=True):
+    def coarsify(self):
         """
         Main coarsify function. Calculates radii and location for residues
         """
-        if scheme == '1':
-            coarsify_avg_dist(self, therm_cush, include_h=True, mass_weighted=mass_weighted)
-        elif scheme == '2':
-            coarsify_encapsulate(self, therm_cush, include_h=self.include_h)
-        elif scheme == '3':
-            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=True, include_h=True, mass_weighted=mass_weighted)
-        elif scheme == '4':
-            coarsify_sc_bb(self, therm_cush=therm_cush, avg_dist=False, include_h=self.include_h)
-        elif scheme == '5':
-            coarsify_primo(self, therm_cush)
-        elif scheme == '6':
-            coarsify_martini(self, therm_cush)
-        self.scheme = {'1': 'Average Distance', '2': 'Encapsulate', '3': 'Backbone Side-chain', '4': 'Alpha Carbon',
-                       '5': 'Primo', '6': 'CG Martini'}[self.scheme]
+        if self.scheme == 'Martini':
+            coarsify_martini(self)
+        else:
+            coarsify(self)
 
-    def output(self):
+    def output(self, my_dir=None):
         """
         Outputs the information for the coarsified data
         """
-        # Choose whether to output to user_data, the original folder, or some other folder
-        output_dir_selection = input("Choose output location: \n\n"
-                                     "1. Coarsify User Data     ->      ../coarsify/Data/user_data \n"
-                                     "2. Original File Location ->  {}\n"
-                                     "3. Other Directory        ->  (Opens Folder Dialog Window)\n"
-                                     "  >>>  ".format(path.dirname(self.base_file)))
-        # Set the output directory
-        if output_dir_selection == '1':
-            self.set_dir()
-        elif output_dir_selection == '2':
-            self.set_dir(path.dirname(self.base_file))
-        else:
-            root = tk.Tk()
-            root.withdraw()
-            self.dir = filedialog.askdirectory()
+        if my_dir is None:
+            # Choose whether to output to user_data, the original folder, or some other folder
+            output_dir_selection = input("Choose output location: \n\n"
+                                         "1. Coarsify User Data     ->      ../coarsify/Data/user_data \n"
+                                         "2. Original File Location ->  {}\n"
+                                         "3. Other Directory        ->  (Opens Folder Dialog Window)\n"
+                                         "  >>>  ".format(path.dirname(self.base_file)))
+            # Set the output directory
+            if output_dir_selection == '1':
+                self.set_dir()
+            elif output_dir_selection == '2':
+                self.set_dir(path.dirname(self.base_file))
+            else:
+                root = tk.Tk()
+                root.withdraw()
+                self.dir = filedialog.askdirectory()
         # Write the pdb
         write_pdb(self)
         # Create the setting script for pymol
@@ -152,13 +158,13 @@ my_radii = {'h': 1.30, 'he': 1.40, 'li': 0.76, 'be': 0.45, 'b': 1.92, 'c': 1.80,
             'tl': 1.96, 'pb': 2.02, 'bi': 2.07, 'po': 1.97, 'at': 2.02, 'rn': 2.20, 'fr': 3.48, 'ra': 2.83, '': 1.80,
             'W': 4.1}
 
-my_weights = {'h': 1.008, 'he': 4.003, 'li': 6.941, 'be': 9.012, 'b': 10.811, 'c': 12.011, 'n': 14.007, 'o': 15.999,
-              'f': 18.998,'ne': 20.180, 'na': 22.990, 'mg': 24.305, 'al': 26.982, 'si': 28.086, 'p': 30.974,
-              's': 32.066, 'cl': 35.453, 'ar': 39.948, 'k': 39.098, 'ca': 40.078, 'ga': 69.723, 'ge': 72.631,
-              'as': 74.922, 'se': 78.971, 'br': 79.904, 'kr': 83.798, 'rb': 85.468, 'sr': 87.62, 'in': 114.818,
-              'sn': 118.711, 'sb': 121.760, 'te': 27.6, 'i': 126.904, 'xe': 131.293, 'cs': 132.905, 'ba': 137.328,
-              'tl': 204.383, 'pb': 207.2, 'bi': 208.980, 'po': 208.982, 'at': 209.987, 'rn': 222.018, 'fr': 223.020,
-              'ra': 226.025, '': 1.80, 'W': 4.1}
+my_masses = {'h': 1.008, 'he': 4.003, 'li': 6.941, 'be': 9.012, 'b': 10.811, 'c': 12.011, 'n': 14.007, 'o': 15.999,
+             'f': 18.998,'ne': 20.180, 'na': 22.990, 'mg': 24.305, 'al': 26.982, 'si': 28.086, 'p': 30.974,
+             's': 32.066, 'cl': 35.453, 'ar': 39.948, 'k': 39.098, 'ca': 40.078, 'ga': 69.723, 'ge': 72.631,
+             'as': 74.922, 'se': 78.971, 'br': 79.904, 'kr': 83.798, 'rb': 85.468, 'sr': 87.62, 'in': 114.818,
+             'sn': 118.711, 'sb': 121.760, 'te': 27.6, 'i': 126.904, 'xe': 131.293, 'cs': 132.905, 'ba': 137.328,
+             'tl': 204.383, 'pb': 207.2, 'bi': 208.980, 'po': 208.982, 'at': 209.987, 'rn': 222.018, 'fr': 223.020,
+             'ra': 226.025, '': 1.80, 'W': 4.1}
 
 special_radii = {''   : {'C': 1.75, 'CA': 1.90, 'N': 1.70, 'O': 1.49, 'F': 1.33, 'CL': 1.81, 'BR': 1.96, 'I': 2.20},
                  'ALA': {'CB': 1.92},
