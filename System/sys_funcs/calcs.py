@@ -12,21 +12,24 @@ def calc_dist(l0, l1):
     return np.sqrt(sum(np.square(l0 - l1)))
 
 
-def calc_com(points):
+def calc_com(points, masses=None):
     """
-    Takes in a set of points and returns the coordinates of the center of mass
+    Takes in a set of points and returns the weighted center of mass. If no mass list provided all weighted at 1
     :param points: lists of locations in n-dimensions
+    :param masses: list of masses corresponding to the points
     :return: Center of mass of the inputs
     """
-
+    # Get the total mass if masses are included
+    if masses is None:
+        masses = [1 for _ in range(len(points))]
     # Set the running sum for the x, y, z values to 0
     tots = [0 for _ in range(len(points[0]))]
-    for point in points:
+    for j in range(len(points)):
         for i in range(len(points[0])):
-            tots[i] += point[i]
+            tots[i] += points[j][i] * masses[j]
 
     # Return the center of mass of inputs
-    return [tots[i]/len(points) for i in range(len(points[0]))]
+    return [tots[i]/sum(masses) for i in range(len(points[0]))]
 
 
 def get_radius(atom):
