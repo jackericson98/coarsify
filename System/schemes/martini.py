@@ -2,10 +2,11 @@ from System.cg_designations import *
 from System.sys_objs.ball import Ball
 
 
-def coarsify_martini(sys, therm_cush=0.0):
+def coarsify_martini(sys):
     """
     CG Martini generated pdb file coarsify function
     """
+    therm_cush = sys.therm_cush
     # Check to see if the system has balls yet or not
     if sys.balls is None:
         sys.balls = []
