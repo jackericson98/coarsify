@@ -88,6 +88,9 @@ def read_pdb(sys):
 
         # Assign the radius
         atom['rad'] = get_radius(atom)
+
+        # Assign the mass
+        atom['mass'] = sys.masses[atom['element'].lower()]
         # If the residue numbers roll over reset the name of the residue to distinguish between the residues
         atoms.append(atom)
         if res_seq == 9999:
@@ -107,4 +110,4 @@ def read_pdb(sys):
         else:
             res.elem_col = 'Ti'
     # Set the atoms and the data
-    sys.atoms, sys.data = DataFrame(atoms), data
+    sys.atoms, sys.settings = DataFrame(atoms), data
