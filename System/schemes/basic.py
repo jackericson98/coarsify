@@ -123,14 +123,14 @@ def coarsify(sys):
                     else:
                         continue
             # Get the balls for the aminos
-            bb_loc, bb_rad = make_ball(bb_atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
-            sc_loc, sc_rad = make_ball(sc_atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
-            # Create the ball object
-            sys.balls += [
-                Ball(loc=bb_loc, rad=bb_rad, element=res.elem_col, residues=[res], atoms=bb_atoms, name=res.name,
-                     chain=res.chain, seq=res.seq, residue_subsection='bb'),
-                Ball(loc=sc_loc, rad=sc_rad, element='pb', residues=[res], atoms=sc_atoms, name=res.name,
-                     chain=res.chain, seq=res.seq, residue_subsection='sc')]
+            if len(bb_atoms) > 0:
+                bb_loc, bb_rad = make_ball(bb_atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
+                sys.balls.append(Ball(loc=bb_loc, rad=bb_rad, element=res.elem_col, residues=[res], atoms=bb_atoms,
+                                      name=res.name, chain=res.chain, seq=res.seq, residue_subsection='bb'))
+            if len(sc_atoms) > 0:
+                sc_loc, sc_rad = make_ball(sc_atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
+                sys.balls.append(Ball(loc=sc_loc, rad=sc_rad, element='pb', residues=[res], atoms=sc_atoms,
+                                      name=res.name, chain=res.chain, seq=res.seq, residue_subsection='sc'))
         else:
             # Get the loc and rad
             loc, rad = make_ball(res.atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
