@@ -87,14 +87,16 @@ def coarsify(sys):
                 ph_loc, ph_rad = make_ball(phos, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
                 sys.balls.append(Ball(loc=ph_loc, rad=ph_rad, element=res.elem_col, residues=[res], atoms=phos,
                                       name=res.name, chain=res.chain, seq=res.seq, residue_subsection='phosphate'))
-            sug_loc, sug_rad = make_ball(sugs, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
-            nbas_loc, nbas_rad = make_ball(nbase, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
-            sys.balls += [
-                Ball(loc=sug_loc, rad=sug_rad, element='pb', residues=[res], atoms=sugs, name=res.name,
-                     chain=res.chain, seq=res.seq, residue_subsection='sugar'),
-                Ball(loc=nbas_loc, rad=nbas_rad, element='pb', residues=[res], atoms=nbase, name=res.name,
-                     chain=res.chain, seq=res.seq, residue_subsection='nbase')
-            ]
+            if len(sugs) > 0:
+                sug_loc, sug_rad = make_ball(sugs, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
+                sys.balls.append(Ball(loc=sug_loc, rad=sug_rad, element='pb', residues=[res], atoms=sugs, name=res.name,
+                     chain=res.chain, seq=res.seq, residue_subsection='sugar'))
+
+            if len(nbase) > 0:
+                nbas_loc, nbas_rad = make_ball(nbase, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
+                sys.balls.append(Ball(loc=nbas_loc, rad=nbas_rad, element='pb', residues=[res], atoms=nbase, name=res.name,
+                                 chain=res.chain, seq=res.seq, residue_subsection='nbase'))
+
         elif res.name in sys.aminos and sys.sc_bb:
             bb_atoms, sc_atoms = [], []
             # Get the back bone atoms and the side chain atoms
