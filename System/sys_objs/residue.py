@@ -17,6 +17,7 @@ class Residue:
         self.id = seg_id
         self.chain = chain
         self.print_name = None
+        self.elem_col = None
 
     def add_atom(self, atom):
         self.atoms.append(atom)
