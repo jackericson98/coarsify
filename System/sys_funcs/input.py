@@ -5,6 +5,64 @@ from System.sys_objs.atom import make_atom
 from System.sys_objs.residue import Residue
 import numpy as np
 from pandas import DataFrame
+from System.sys_funcs.calcs import calc_dist
+
+
+def fix_sol(residue):
+    # Go through the atoms in the residue and pull the oxygens out
+    oxy_ress = []
+    for atom in residue.atoms:
+        if atom['element'].lower() == 'o':
+            oxy_ress.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'],
+                                    chain=atom['chn']))
+    # Now add the hydrogens to the correct oxygen
+    for atom in residue.atoms:
+        if atom['element'].lower() == 'h':
+            current_res, min_dist = None, np.inf
+            for res in oxy_ress:
+                atom_dist = calc_dist(res.atoms[0]['loc'], atom['loc'])
+                if atom_dist < min_dist:
+                    min_dist = atom_dist
+                    current_res = res
+            current_res.atoms.append(atom)
+    broken_resids = []
+    good_resids = []
+    for res in oxy_ress:
+        if len(res.atoms) != 3:
+            broken_resids.append(res)
+        else:
+            good_resids.append(res)
+    small_resids, missing_hs = [], []
+    for res in broken_resids:
+        if len(res.atoms) > 3:
+            res_atoms_dic = {}
+            for atom in res.atoms[1:]:
+                if atom['name'] in res_atoms_dic:
+                    if calc_dist(atom['loc'], res.atoms[0]['loc']) < calc_dist(res_atoms_dic[atom['name']]['loc'], res.atoms[0]['loc']):
+                        missing_hs.append(res_atoms_dic[atom['name']])
+                        res_atoms_dic[atom['name']] = atom
+                    else:
+                        missing_hs.append(atom)
+                else:
+                    res_atoms_dic[atom['name']] = atom
+            res.atoms = [res_atoms_dic[_] for _ in res_atoms_dic]
+            good_resids.append(res)
+        else:
+            small_resids.append(res)
+    for h in missing_hs:
+        current_res, min_dist = None, np.inf
+        for res in oxy_ress:
+            atom_dist = calc_dist(res.atoms[0]['loc'], h['loc'])
+            if atom_dist < min_dist:
+                min_dist = atom_dist
+                current_res = res
+        current_res.atoms.append(h)
+    good_resids += small_resids
+    for res in good_resids:
+        if len(res.atoms) != 3:
+            print('FUUUUUCK')
+
+    return good_resids
 
 
 def read_pdb(sys):
@@ -75,6 +133,11 @@ def read_pdb(sys):
             atom['chn'] = my_chn
 
         # Assign the atoms and create the residues
+        # if res_name in resids and atom['chain'] == 'Z' and len(resids[res_name].atoms) >= 3:
+        #     my_res = Residue(sys=sys, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'], chain=atom['chn'])
+        #     atom['chn'].residues.append(my_res)
+        #     resids[res_name] = my_res
+        #     sys.residues.append(my_res)
         if res_name in resids:
             my_res = resids[res_name]
             my_res.atoms.append(atom)
@@ -91,6 +154,7 @@ def read_pdb(sys):
 
         # Assign the mass
         atom['mass'] = sys.masses[atom['element'].lower()]
+
         # If the residue numbers roll over reset the name of the residue to distinguish between the residues
         atoms.append(atom)
         if res_seq == 9999:
@@ -102,6 +166,13 @@ def read_pdb(sys):
                   'SOL': 'Ti', 'DA': 'N', 'DC': 'O', 'DG': 'F', 'DT': 'S', 'NA': 'NA', 'CL': 'CL', 'MG': 'MG',
                   'K': 'K'}
     # Set the residues' colors and let the default go to Titanium (Grey)
+    adjusted_residues = []
+    for res in sys.residues:
+        if res.name == 'SOL' and len(res.atoms) > 3:
+            adjusted_residues += fix_sol(res)
+        else:
+            adjusted_residues.append(res)
+    sys.residues = adjusted_residues
     for res in sys.residues:
         if res.name == 'ION':
             res.elem_col = res.atoms[0]['name']
@@ -109,5 +180,6 @@ def read_pdb(sys):
             res.elem_col = res_colors[res.name]
         else:
             res.elem_col = 'Ti'
+
     # Set the atoms and the data
     sys.atoms, sys.settings = DataFrame(atoms), data
