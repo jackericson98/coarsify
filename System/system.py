@@ -200,7 +200,7 @@ amino_scs = ['CB', 'HB', 'HB1', 'HB2', 'HB3',
 nucleic_acids = {'DT', 'DA', 'DG', 'DC', 'DU', 'U', 'G', 'A', 'T', 'C'}
 
 nucleic_nbase = ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'C2', 'C4', 'C5', 'C6', 'C7', 'C8', 'O2', 'O4', 'O6']
-nucleic_sugr = ['O3\'', 'O5\'', 'C5\'', 'C4\'', 'O4\'', 'C3\'', 'C2\'', 'C1\'']
+nucleic_sugr = ['O3\'', 'O2\'', 'O5\'', 'C5\'', 'C4\'', 'O4\'', 'C3\'', 'C2\'', 'C1\'']
 nucleic_pphte = ['P', 'O1P', 'O2P', 'OP1', 'OP2']
 
 
