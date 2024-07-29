@@ -24,7 +24,11 @@ def fix_sol(residue):
                 if atom_dist < min_dist:
                     min_dist = atom_dist
                     current_res = res
-            current_res.atoms.append(atom)
+            if current_res is not None:
+                current_res.atoms.append(atom)
+            else:
+                oxy_ress.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'],
+                                        chain=atom['chn']))
     broken_resids = []
     good_resids = []
     for res in oxy_ress:
@@ -73,7 +77,7 @@ def read_pdb(sys):
     with open(file, 'r') as f:
         my_file = f.readlines()
     # Add the system name and reset the atoms and data lists
-    sys.name = path.basename(sys.base_file)[:-4] + '_coarse'
+    sys.name = path.basename(sys.base_file)[:-4]
     # Set up the atom and the data lists
     atoms, data = [], []
     sys.chains, sys.residues = [], []

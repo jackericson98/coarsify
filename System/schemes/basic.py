@@ -94,7 +94,7 @@ def coarsify(sys):
 
             if len(nbase) > 0:
                 nbas_loc, nbas_rad = make_ball(nbase, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
-                sys.balls.append(Ball(loc=nbas_loc, rad=nbas_rad, element='pb', residues=[res], atoms=nbase, name=res.name,
+                sys.balls.append(Ball(loc=nbas_loc, rad=nbas_rad, element='bi', residues=[res], atoms=nbase, name=res.name,
                                  chain=res.chain, seq=res.seq, residue_subsection='nbase'))
 
         elif res.name in sys.aminos and sys.sc_bb:

@@ -66,9 +66,17 @@ class System:
         my_vals = settings_gui()
         self.get_vals(my_vals)
         self.read_pdb()
+        my_scheme = {'Encapsulate': '_encap', 'Average Distance': '_ad', 'Martini': '_martini'}[self.scheme]
+        self.name += my_scheme
+        if self.mass_weighted:
+            self.name += '_mw'
+        if self.sc_bb:
+            self.name += '_scbb'
         self.print_info()
         self.coarsify()
+
         os.mkdir(self.dir + '/' + self.name)
+        self.dir = self.dir + '/' + self.name
         self.output(self.dir)
 
     def get_vals(self, my_vals):
