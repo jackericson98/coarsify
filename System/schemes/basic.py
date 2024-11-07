@@ -33,7 +33,7 @@ def coarsify(sys):
     for res in sys.residues:
         # If the residue is water we don't need to worry about backbone and side chain
         if res.name in sys.nucleics and sys.sc_bb:
-            sugs, phos, nbase, hs = [], [], [], []
+            sugs, phos, nbase, hs, mass = [], [], [], [], 0
             # Get the back bone atoms and the side chain atoms
             for atom in res.atoms:
                 if atom['element'].lower() == 'h':
@@ -84,18 +84,22 @@ def coarsify(sys):
 
             # Create the ball objects
             if len(phos) > 0:
+                mass = sum([_['mass'] for _ in phos])
                 ph_loc, ph_rad = make_ball(phos, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
-                sys.balls.append(Ball(loc=ph_loc, rad=ph_rad, element=res.elem_col, residues=[res], atoms=phos,
-                                      name=res.name, chain=res.chain, seq=res.seq, residue_subsection='phosphate'))
+                sys.balls.append(Ball(loc=ph_loc, rad=ph_rad, element='bi', residues=[res], atoms=phos,
+                                      name=res.name, chain=res.chain, seq=res.seq, residue_subsection='phosphate',
+                                      mass=mass))
             if len(sugs) > 0:
+                mass = sum([_['mass'] for _ in sugs])
                 sug_loc, sug_rad = make_ball(sugs, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
                 sys.balls.append(Ball(loc=sug_loc, rad=sug_rad, element='pb', residues=[res], atoms=sugs, name=res.name,
-                     chain=res.chain, seq=res.seq, residue_subsection='sugar'))
+                     chain=res.chain, seq=res.seq, residue_subsection='sugar', mass=mass))
 
             if len(nbase) > 0:
+                mass = sum([_['mass'] for _ in nbase])
                 nbas_loc, nbas_rad = make_ball(nbase, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
-                sys.balls.append(Ball(loc=nbas_loc, rad=nbas_rad, element='pb', residues=[res], atoms=nbase, name=res.name,
-                                 chain=res.chain, seq=res.seq, residue_subsection='nbase'))
+                sys.balls.append(Ball(loc=nbas_loc, rad=nbas_rad, element='po', residues=[res], atoms=nbase, name=res.name,
+                                 chain=res.chain, seq=res.seq, residue_subsection='nbase', mass=mass))
 
         elif res.name in sys.aminos and sys.sc_bb:
             bb_atoms, sc_atoms = [], []
@@ -124,16 +128,20 @@ def coarsify(sys):
                         continue
             # Get the balls for the aminos
             if len(bb_atoms) > 0:
+                mass = sum([_['mass'] for _ in bb_atoms])
                 bb_loc, bb_rad = make_ball(bb_atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
                 sys.balls.append(Ball(loc=bb_loc, rad=bb_rad, element=res.elem_col, residues=[res], atoms=bb_atoms,
-                                      name=res.name, chain=res.chain, seq=res.seq, residue_subsection='bb'))
+                                      name=res.name, chain=res.chain, seq=res.seq, residue_subsection='bb', mass=mass))
             if len(sc_atoms) > 0:
+                mass = sum([_['mass'] for _ in sc_atoms])
                 sc_loc, sc_rad = make_ball(sc_atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
                 sys.balls.append(Ball(loc=sc_loc, rad=sc_rad, element='pb', residues=[res], atoms=sc_atoms,
-                                      name=res.name, chain=res.chain, seq=res.seq, residue_subsection='sc'))
+                                      name=res.name, chain=res.chain, seq=res.seq, residue_subsection='sc', mass=mass))
         else:
             # Get the loc and rad
             loc, rad = make_ball(res.atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
+            # Calculate the mass of the ball
+            mass = sum([_['mass'] for _ in res.atoms])
             # Create the ball object
             sys.balls.append(Ball(loc=loc, rad=rad, element=res.elem_col, residues=[res], atoms=res.atoms,
-                                  name=res.name, chain=res.chain, seq=res.seq))
+                                  name=res.name, chain=res.chain, seq=res.seq, mass=mass))
