@@ -24,7 +24,10 @@ def fix_sol(residue):
                 if atom_dist < min_dist:
                     min_dist = atom_dist
                     current_res = res
-            current_res.atoms.append(atom)
+            if current_res is None:
+                oxy_ress.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'], chain=atom['chn']))
+            else:
+                current_res.atoms.append(atom)
     broken_resids = []
     good_resids = []
     for res in oxy_ress:
@@ -60,7 +63,7 @@ def fix_sol(residue):
     good_resids += small_resids
     for res in good_resids:
         if len(res.atoms) != 3:
-            print('FUUUUUCK')
+            print('No go')
 
     return good_resids
 
@@ -177,7 +180,7 @@ def read_pdb(sys):
         if res.name == 'ION':
             res.elem_col = res.atoms[0]['name']
         elif res.name in res_colors:
-            res.elem_col = res_colors[res.name]
+            res.elem_col = 'Al'
         else:
             res.elem_col = 'Ti'
 
