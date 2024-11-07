@@ -3,7 +3,7 @@ from os import path
 import tkinter as tk
 from tkinter import filedialog
 from System.sys_funcs.input import read_pdb
-from System.sys_funcs.output import set_dir, write_pdb, write_pymol_atoms
+from System.sys_funcs.output import set_dir, write_pdb, write_pymol_atoms, color_pymol_balls, set_sys_dir
 from System.schemes.martini import coarsify_martini
 from System.schemes.basic import coarsify
 from System.schemes.primo import coarsify_primo
@@ -13,14 +13,13 @@ from GUI import settings_gui
 class System:
     def __init__(self, file=None, atoms=None, output_directory=None, root_dir=None, print_actions=False, residues=None,
                  chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0, include_h=True,
-                 mass_weighted=True, sc_bb=None):
+                 mass_weighted=True, sc_bb=None, color_scheme='Shapely'):
         """
         Class used to import files of all types and return a System
         :param file: Base system file address
         :param atoms: List holding the atom objects
         :param output_directory: Directory for export files to be output to
         """
-
         # Names
         self.name = None                    # Name                :   Name describing the system
         self.scheme = scheme                # CG Scheme           :   The scheme by which the atoms are coarse grained-
@@ -49,6 +48,7 @@ class System:
         self.nucleic_nbase = nucleic_sugr
         self.nucleic_ignores = []
         self.decimals = None                # Decimals            :   Decimals setting for the whole system
+        self.color_scheme = color_scheme
 
         self.balls = None                   # Balls               :   Output for the program
 
@@ -56,7 +56,7 @@ class System:
         self.data = None                    # Data                :   Additional data provided by the base file
         self.base_file = file               # Base file           :   Primary file address
         self.dir = output_directory         # Output Directory    :   Output directory for the export files
-        self.vpy_dir = root_dir             # Vorpy Directory     :   Directory that vorpy is running out of
+        self.vpy_dir = os.getcwd()          # Vorpy Directory     :   Directory that vorpy is running out of
         self.max_atom_rad = 0               # Max atom rad        :   Largest radius of the system for reference
 
         # Print Actions
@@ -68,7 +68,7 @@ class System:
         self.read_pdb()
         self.print_info()
         self.coarsify()
-        os.mkdir(self.dir + '/' + self.name)
+        self.set_sys_dir()
         self.output(self.dir)
 
     def get_vals(self, my_vals):
@@ -113,6 +113,9 @@ class System:
         else:
             coarsify(self)
 
+    def set_sys_dir(self, my_dir=None):
+        set_sys_dir(self, my_dir)
+
     def output(self, my_dir=None):
         """
         Outputs the information for the coarsified data
@@ -138,6 +141,8 @@ class System:
         # Create the setting script for pymol
         write_pymol_atoms(self)
         write_pymol_atoms(self, set_sol=False)
+        # Write the atom colors
+        color_pymol_balls(self, self.sc_bb)
 
     def set_dir(self, dir_name=None):
         """
