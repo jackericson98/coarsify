@@ -6,7 +6,6 @@ from System.sys_funcs.input import read_pdb
 from System.sys_funcs.output import set_dir, write_pdb, write_pymol_atoms, color_pymol_balls, set_sys_dir
 from System.schemes.martini import coarsify_martini
 from System.schemes.basic import coarsify
-from System.schemes.primo import coarsify_primo
 from GUI import settings_gui
 
 
