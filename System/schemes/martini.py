@@ -31,6 +31,6 @@ def coarsify_martini(sys):
         else:
             rad = atom['rad']
         # Create the ball
-        sys.balls.append(Ball(loc=atom['loc'], rad=rad, element=atom['res'].elem_col, residues=atom['res'],
+        sys.balls.append(Ball(loc=atom['loc'], rad=rad, element=atom['res'].elem_col, residues=[atom['res']],
                               name=atom['residue'], chain=atom['chn'], seq=atom['res'].seq, index=atom['num'], mass=1))
 
