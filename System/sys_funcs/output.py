@@ -83,13 +83,13 @@ def write_pdb(sys):
     os.chdir(start_dir)
 
 
-def write_pymol_atoms(sys, set_sol=True):
+def write_pymol_atoms(sys, set_sol=True, file_name=None):
     start_dir = os.getcwd()
     os.chdir(sys.dir)
-    if set_sol:
-        file_name = 'set_atoms_all.pml'
-    else:
-        file_name = 'set_atoms_no_sol.pml'
+    if file_name is None:
+        file_name = 'set_atoms.pml'
+    if not set_sol:
+        file_name = file_name[:-4] + '_nosol.pml'
     # Create the file
     with open(file_name, 'w') as file:
         for ball in sys.balls:
@@ -113,20 +113,20 @@ def color_pymol_balls(sys, bb_sc=False):
     with open(file_name, 'w') as file:
         for ball in sys.balls:
             if not bb_sc:
-                file.write("color {}, (resn {} and resi {} and name {})\n".format(ball.residues[0].color, ball.name, ball.seq,
+                file.write("color {}, ({} and resn {} and resi {} and name {})\n".format(ball.residues[0].color, sys.name, ball.name, ball.seq,
                                                                                   ball.element))
             else:
                 if ball.sub_section == 'nbase':
                     file.write(
-                        "color {}, (resn {} and resi {} and name {})\n".format(ball.residues[0].color,
+                        "color {}, ({} and resn {} and resi {} and name {})\n".format(ball.residues[0].color, sys.name,
                                                                                ball.name, ball.seq, ball.element))
                 elif ball.sub_section is None or ball.sub_section == 'sc':
                     file.write(
-                        "color {}, (resn {} and resi {} and name {})\n".format(ball.residues[0].color,
+                        "color {}, ({} and resn {} and resi {} and name {})\n".format(ball.residues[0].color, sys.name,
                                                                                ball.name, ball.seq, ball.element))
                 else:
                     file.write(
-                        "color {}, (resn {} and resi {} and name {})\n".format(sc_bb_colors[ball.sub_section],
+                        "color {}, ({} and resn {} and resi {} and name {})\n".format(sc_bb_colors[ball.sub_section], sys.name,
                                                                                ball.name, ball.seq, ball.element))
         # Rebuild the system
         file.write("\nrebuild")
