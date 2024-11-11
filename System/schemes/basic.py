@@ -340,8 +340,8 @@ def coarsify(sys):
         percentage = min((i / (len(sys.residues) - len(sys.sol.residues))) * 100, 100)
         my_time = time.perf_counter() - start_time
         h, m, s = get_time(my_time)
-        # print("\rRun Time = {}:{:02d}:{:2.2f} - Coarsifying Residue {:>5}, {:<3} {:<5} - {:.2f} %"
-        #       .format(int(h), int(m), round(s, 2), i + 1, res.name, res.seq, percentage), end="")
+        print("\rRun Time = {}:{:02d}:{:2.2f} - Coarsifying Residue {:>5}, {:<3} {:<5} - {:.2f} %"
+              .format(int(h), int(m), round(s, 2), i + 1, res.name, res.seq, percentage), end="")
         # If the residue is water we don't need to worry about backbone and side chain
         if res.name in sys.nucleics and sys.sc_bb:
             sugs, phos, nbase, hs, mass = [], [], [], [], 0
