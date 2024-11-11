@@ -32,6 +32,39 @@ def calc_com(points, masses=None):
     return [tots[i]/sum(masses) for i in range(len(points[0]))]
 
 
+# Calculate tetrahedron volume function.
+def calc_tetra_vol(p0, p1, p2, p3):
+    """
+    Calculates the volume of a tetrahedron defined by its vertices
+    :param p0: Point 0
+    :param p1: Point 1
+    :param p2: Point 2
+    :param p3: Point 3
+    :return: Volume of the tetrahedron made by the points
+    """
+    # Choose a base point (p0) and find the vectors between it and other points
+    r01 = p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]
+    r02 = p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]
+    r03 = np.array([p3[0] - p0[0], p3[1] - p0[1], p3[2] - p0[2]])
+
+    # Formula for tetrahedron volume: 1/6 * r03 dot (r01 cross r02)
+    return (1/6)*abs(np.dot(r03, np.cross(r01, r02)))
+
+
+def get_time(seconds):
+    """
+    Turns seconds into hours, minutes and seconds
+    :param seconds: Number of seconds in the counter
+    :return: hours, minutes, seconds
+    """
+    # Divide up the values
+    hours = seconds // 3600
+    minutes = (seconds - (hours * 3600)) // 60
+    seconds = seconds - hours * 3600 - minutes * 60
+    # Return the values
+    return hours, minutes, seconds
+
+
 def get_radius(atom):
     """
     Finds the radius of the atom from the symbol or vice versa
@@ -48,13 +81,13 @@ def get_radius(atom):
                 if name in special_radii[atom['res'].name]:
                     atom['rad'] = special_radii[atom['res'].name][name]
     # If we have the type and just want the radius, keep scanning until we find the radius
-    if atom['rad'] is None and atom['element'].lower() in radii:
-        atom['rad'] = radii[atom['element'].lower()]
+    if atom['rad'] is None and atom['element'].upper() in radii:
+        atom['rad'] = radii[atom['element'].upper()]
     # If indicated we return the symbol of atom that the radius indicates
     if atom['rad'] is None or atom['rad'] == 0:
         # Check to see if the radius is in the system
-        if atom['element'] in radii:
-            atom['rad'] = radii[atom['element']]
+        if atom['element'].upper() in radii:
+            atom['rad'] = radii[atom['element'].upper()]
         else:
             # Get the closest atom to it
             min_diff = np.inf
