@@ -75,11 +75,10 @@ def get_radius(atom):
     if atom['res'] is not None and atom['res'].name in special_radii:
         # Check if no atom name exists or its empty
         if atom['name'] is not None and atom['name'] != '':
-            for i in range(len(atom['name'])):
-                name = atom['name'][:-i]
-                # Check the residue name
-                if name in special_radii[atom['res'].name]:
-                    atom['rad'] = special_radii[atom['res'].name][name]
+            # Check the residue name
+            if atom['name'] in special_radii[atom['res'].name]:
+                atom['rad'] = special_radii[atom['res'].name][atom['name']]
+
     # If we have the type and just want the radius, keep scanning until we find the radius
     if atom['rad'] is None and atom['element'].upper() in radii:
         atom['rad'] = radii[atom['element'].upper()]
