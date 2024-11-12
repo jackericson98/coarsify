@@ -205,7 +205,7 @@ def minimum_enclosing_sphere1(spheres):
     return center, radius
 
 
-def minimum_enclosing_sphere(spheres):
+def minimum_enclosing_sphere(spheres, plotting=False):
     """
     Find the minimum enclosing sphere by considering combinations of spheres sorted by their distance from the center of
     mass.
@@ -253,7 +253,11 @@ def minimum_enclosing_sphere(spheres):
                 min_loc = loc
 
     my_loc, my_rad = find_enclosing_sphere(spheres)
-    if min_loc is None or my_rad < min_rad:
+    if (min_loc is None or my_rad < min_rad) and encapsulates_all_spheres(my_loc, my_rad, spheres):
+        min_loc, min_rad = my_loc, my_rad
+
+    my_loc, my_rad = minimum_enclosing_sphere1(spheres)
+    if min_loc is None or my_rad < min_rad and encapsulates_all_spheres(my_loc, my_rad, spheres):
         min_loc, min_rad = my_loc, my_rad
 
     return min_loc, min_rad
@@ -262,7 +266,6 @@ def minimum_enclosing_sphere(spheres):
 def calculate_average_sphere(spheres):
     # spheres is a list of tuples (center, radius), where center is a numpy array
     centers = np.array([s[0] for s in spheres])
-    radii = np.array([s[1] for s in spheres])
 
     # Calculate the centroid of the centers
     centroid = np.mean(centers, axis=0)
