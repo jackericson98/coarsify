@@ -261,10 +261,35 @@ def minimum_enclosing_sphere_iterative(spheres, iterations=100, shrink_factor=0.
 
 
 def calculate_center_with_radii(spheres):
-    """Calculate the center considering both the position and radii of the spheres."""
+    """
+    Calculates a weighted center of a set of spheres, taking into account both their centers and radii.
+    The function computes a center of mass where the mass of each sphere is proportional to its radius.
+
+    Args:
+    spheres (list of tuples): A list of tuples, where each tuple contains the center (as a tuple of coordinates)
+                              and the radius of a sphere.
+
+    Returns:
+    ndarray: The weighted center calculated as the center of mass of the spheres, with each sphere's mass
+             assumed to be its radius.
+
+    Example:
+    >>> calculate_center_with_radii([((1, 2, 3), 1), ((4, 5, 6), 2)])
+    array([3., 4., 5.])
+    """
+
+    # Calculate the total weight, where weight is defined as the radius of each sphere
+    # This assumes that the mass of each sphere is proportional to its radius
     total_weight = sum(radius for _, radius in spheres)
-    weighted_centers = sum(center * radius for center, radius in spheres)
+
+    # Compute the weighted sum of the sphere centers
+    # Each sphere's center is multiplied by its radius to give it a weight proportional to its size
+    weighted_centers = sum(np.array(center) * radius for center, radius in spheres)
+
+    # Calculate the weighted center of mass
+    # Divide the weighted sum of centers by the total weight to get the average position weighted by radius
     center_with_radii = weighted_centers / total_weight
+
     return center_with_radii
 
 
