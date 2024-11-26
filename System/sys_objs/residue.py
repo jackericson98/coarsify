@@ -55,11 +55,11 @@ residue_colors = {
     "HYP": {"Shapely": "0xFF00FF"},  # Rare in standard use, included for completeness
 
     # Nucleic Acids
-    "DA": {"Shapely": "0xA0A0FF"},
-    "DC": {"Shapely": "0xFF8C4B"},
-    "DG": {"Shapely": "0xFF7070"},
-    "DT": {"Shapely": "0xA0FFA0"},
-    "DU": {"Shapely": "0xB8B8B8"},
+    **{_: {"Shapely": "0xA0A0FF"} for _ in {"DA", "A"}},
+    **{_: {"Shapely": "0xFF8C4B"} for _ in {"DC", "C"}},
+    **{_: {"Shapely": "0xFF7070"} for _ in {"DG", "G"}},
+    **{_: {"Shapely": "0xA0FFA0"} for _ in {"DT", "T"}},
+    **{_: {"Shapely": "0xB8B8B8"} for _ in {"DU", "U"}},
 
     # Other special cases
     "Backbone": {"Shapely": "0xB8B8B8"},
