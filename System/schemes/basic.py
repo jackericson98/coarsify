@@ -167,7 +167,21 @@ def minimum_enclosing_sphere_3(spheres):
     return circumcenter, radius
 
 
-def find_enclosing_sphere1(spheres):
+def minimum_enclosing_sphere_iterative(spheres, iterations=100, shrink_factor=0.8):
+    """
+    Calculates the minimum enclosing sphere iteratively for a set of spheres by adjusting the center and radius based on
+    the sphere's positions and radii. Initially, it calculates an enclosing sphere for the two furthest spheres and then
+    iteratively adjusts to encapsulate all spheres.
+
+    Args:
+        spheres (list of tuples): A list of spheres, each represented as a tuple with a center (tuple) and a radius (float).
+        iterations (int): Maximum number of iterations to perform for adjusting the sphere.
+        shrink_factor (float): Factor to gradually reduce the radius to fine-tune the encapsulation.
+
+    Returns:
+        tuple: A tuple (min_loc, min_rad) representing the center and radius of the calculated minimum enclosing sphere.
+    """
+    # Start with the
     max_dist, my_spheres = 0, None
     for i in range(len(spheres)):
         loc_i, rad_i = spheres[i]
@@ -181,44 +195,69 @@ def find_enclosing_sphere1(spheres):
     my_dir = s2[0] - s1[0]
     dhat = my_dir / np.linalg.norm(my_dir)
     loc = s1[0] + (0.5 * max_dist - s1[1]) * dhat
+    rad = max_dist / 2
     if encapsulates_all_spheres(loc, max_dist / 2, spheres):
-        return loc, max_dist / 2
+        return loc, rad
+    min_rad, min_loc = rad, loc
+    # Move the sphere to adjust to the
+    for i in range(iterations):
+        # Set the distance and furthest ball variables
+        dist, f_ball = 0, None
+        # Find the furthest ball from the center
+        for ball in spheres:
+            # Calculate the distance from the center
+            my_dist = calc_dist(loc, ball[0]) + ball[1]
+            # Check if it is larger
+            if my_dist > dist:
+                # Set the new f_ball and distance
+                f_ball, dist = ball, my_dist
 
+        # Get the direction and magnitude to move the encapsulating sphere
+        loc_dir = f_ball[0] - loc
+        loc_dir_mag = np.linalg.norm(loc_dir)
+        ld_hat = loc_dir / loc_dir_mag
+        # Store the last location to make sure we aren't just repeating the same calculations over and over
+        last_loc, last_rad = loc, rad
+        # Move the encapsulating sphere
+        loc = loc + ld_hat * (dist - rad)
+        # Increase the radius to maintain the last ball
+        rad = dist
+        # Check that the location and radius have changed
+        if rad == last_rad and encapsulates_all_spheres(loc, rad, spheres):
+            print(i, ' Iterations')
+            break
+        # Check that the ball encapsulates all of the balls
+        if encapsulates_all_spheres(loc, rad, spheres):
+            if rad < min_rad:
+                min_loc, min_rad = loc, rad
+            shrink_factor = shrink_factor + 0.25 * (1 - shrink_factor)
+            # Shrink the radius by 10 %
+            rad = shrink_factor * rad
 
-def find_enclosing_sphere(spheres):
-    # spheres is a list of tuples (center, radius), where center is a numpy array
-    num_spheres = len(spheres)
+    # Do one last check to make sure no matter what the sphere is enclosed
+    retry_limit = 100  # Set a reasonable limit based on expected difficulty of the problem
+    retry_count = 0
 
-    # Calculate the farthest points in the set of spheres to define the initial bounds
-    max_distance = 0
-    for i in range(num_spheres):
-        center_i, radius_i = spheres[i]
-        for j in range(i + 1, num_spheres):
-            center_j, radius_j = spheres[j]
-            distance = np.linalg.norm(center_i - center_j) + radius_i + radius_j
-            if distance > max_distance:
-                max_distance = distance
-                # Initial guess for the enclosing sphere center and radius
-                enclosing_center = (center_i + center_j) / 2
-                enclosing_radius = distance / 2
+    while retry_count < retry_limit:
+        bad_sphere = encapsulates_all_spheres(min_loc, min_rad, spheres, return_bad_sphere=True)
+        if bad_sphere is True:
+            break
 
-    # Iteratively adjust the center of the sphere to minimize the radius
-    for _ in range(100):  # Perform 100 iterations for convergence
-        max_dist = 0
-        for center, radius in spheres:
-            dist = np.linalg.norm(enclosing_center - center) + radius
-            if dist > max_dist:
-                max_dist = dist
-                farthest_sphere = (center, radius)
+        # Recalculate the center and radius to try to encapsulate the bad sphere
+        my_dist = calc_dist(bad_sphere[0], min_loc) + bad_sphere[1]
+        direction_to_bad_sphere = np.array(bad_sphere[0]) - np.array(min_loc)
+        new_center_direction = direction_to_bad_sphere / np.linalg.norm(direction_to_bad_sphere)
 
-        # Update the sphere to include the farthest sphere
-        if max_dist > enclosing_radius:
-            enclosing_radius = max_dist
-            direction = farthest_sphere[0] - enclosing_center
-            direction /= np.linalg.norm(direction)
-            enclosing_center += direction * (max_dist - enclosing_radius)
+        # Adjust center towards the bad sphere
+        min_loc = np.array(min_loc) + 0.1 * new_center_direction * my_dist
+        min_loc = min_loc.tolist()  # Convert back to list if necessary
 
-    return enclosing_center, enclosing_radius
+        # Increase the radius
+        min_rad = max(min_rad, my_dist)
+
+        retry_count += 1
+    # Finally return the min_loc and min_rad
+    return min_loc, min_rad
 
 
 def calculate_center_with_radii(spheres):
