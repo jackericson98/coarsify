@@ -432,16 +432,35 @@ def minimum_enclosing_sphere(spheres, plotting=False, fast=False):
 
 
 def calculate_average_sphere(spheres):
-    # spheres is a list of tuples (center, radius), where center is a numpy array
+    """
+    Calculates the centroid of a set of spheres and the average distance from this centroid to the surface of each sphere,
+    effectively determining the center and radius of an "average" sphere that represents the collection.
+
+    Args:
+        spheres (list of tuples): Each tuple in the list represents a sphere, where the first element is the center of the sphere
+                                  (a numpy array of coordinates) and the second element is the sphere's radius (a float).
+
+    Returns:
+        tuple: A tuple containing the centroid of the sphere centers and the average radius calculated from the centroid
+               to the surface of each sphere.
+
+    Notes:
+        - The centroid is calculated as the mean of the coordinates of the sphere centers.
+        - The average radius is computed as the mean of the distances from the centroid to the surface of each sphere,
+          which includes the sphere's radius.
+    """
+
+    # Extract the centers of all spheres into a numpy array
     centers = np.array([s[0] for s in spheres])
 
-    # Calculate the centroid of the centers
+    # Calculate the centroid of these centers
     centroid = np.mean(centers, axis=0)
 
     # Calculate the average distance from the centroid to the surface of each sphere
     distances = np.array([np.linalg.norm(centroid - center) + radius for center, radius in spheres])
     average_radius = np.mean(distances)
 
+    # Return the calculated centroid and average radius
     return centroid, average_radius
 
 
