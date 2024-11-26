@@ -126,18 +126,44 @@ def enclosing_sphere_radius(center, spheres):
 
 
 def minimum_enclosing_sphere_3(spheres):
-    """Find the minimum enclosing sphere for three spheres."""
+    """
+    Calculates the minimum enclosing sphere for exactly three spheres. This function determines the circumcenter of the
+    triangle formed by the centers of the three spheres and uses it to calculate the sphere's radius that would
+    encapsulate all three spheres.
+
+    Args:
+        spheres (list of tuples): A list containing exactly three tuples, where each tuple consists of the center
+                                  (as a tuple of coordinates) and radius of a sphere.
+
+    Returns:
+        tuple: A tuple containing the coordinates of the circumcenter and the radius of the enclosing sphere.
+
+    Raises:
+        ValueError: If the input list does not contain exactly three spheres.
+
+    Notes:
+        - If the three sphere centers are collinear or coincident, the function cannot compute a unique circumcenter
+          and will return None.
+    """
+
+    # Check if the input list has exactly three spheres, raise an error if not
     if len(spheres) != 3:
         raise ValueError("Exactly three spheres are required.")
 
+    # Extract centers of the spheres
     centers = [s[0] for s in spheres]
+
+    # Calculate the circumcenter of the triangle formed by the three sphere centers
     circumcenter = find_circumcenter(np.array(centers[0]), np.array(centers[1]), np.array(centers[2]))
 
+    # If circumcenter could not be calculated (e.g., collinear or coincident points), return None
     if circumcenter is None:
-        # Handle collinear or coincident points, a simpler enclosing sphere is needed
         return None
 
+    # Calculate the radius of the enclosing sphere that encompasses all three spheres
     radius = enclosing_sphere_radius(circumcenter, spheres)
+
+    # Return the circumcenter and the calculated radius
     return circumcenter, radius
 
 
