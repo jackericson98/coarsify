@@ -45,24 +45,49 @@ def minimum_enclosing_sphere_for_two(sphere1, sphere2):
 
 
 def find_circumcenter(a, b, c):
-    """Find the circumcenter of the triangle formed by points a, b, c."""
+    """
+    Calculates the circumcenter of the triangle formed by three points in a plane or space. The circumcenter is the
+    center of the circle that can circumscribe the triangle formed by these points.
+
+    Args:
+        a, b, c (ndarray): Coordinates of the vertices of the triangle. Each should be a NumPy array.
+
+    Returns:
+        ndarray or None: The coordinates of the circumcenter if it exists. Returns None if the points are collinear
+                         or coincident, which leads to a degenerate triangle where the circumcenter cannot be defined.
+
+    Notes:
+        - The calculation is based on solving the perpendicular bisectors of the triangle's sides.
+        - This implementation handles cases in 2D or 3D but assumes points are not collinear.
+    """
+
+    # Compute the vectors from point a to points b and c
     ac = c - a
     ab = b - a
+
+    # Calculate the cross product of vectors ab and ac
     ab_cross_ac = np.cross(ab, ac)
-    # Squared lengths of the edges
+
+    # Compute squared lengths of the edges ab and ac
     ab_sq = np.dot(ab, ab)
     ac_sq = np.dot(ac, ac)
+
+    # Calculate the squared magnitude of the cross product
     cross_sq = np.dot(ab_cross_ac, ab_cross_ac)
 
-    # Compute the circumcenter
+    # Check for collinear or coincident points which make the cross product zero
     if cross_sq == 0:
         return None  # Degenerate case: points are collinear or coincident
 
+    # Calculate the coefficients for the linear combination using the perpendicular bisectors
     s = 0.5 / cross_sq * np.array([
         ac_sq * np.dot(ab, ab_cross_ac),
         ab_sq * np.dot(ac, -ab_cross_ac)
     ])
+
+    # Determine the circumcenter by adding the appropriate linear combinations to point a
     circumcenter = a + s[0] * ab + s[1] * ac
+
     return circumcenter
 
 
