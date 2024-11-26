@@ -365,59 +365,67 @@ def minimum_convex_hull_sphere(spheres):
     return center, radius
 
 
-def minimum_enclosing_sphere(spheres, plotting=False):
+def minimum_enclosing_sphere(spheres, plotting=False, fast=False):
     """
-    Find the minimum enclosing sphere by considering combinations of spheres sorted by their distance from the center of
-    mass.
+    Calculates the minimum enclosing sphere for a given set of spheres. The function uses various strategies based on the number of spheres:
+    - If there's only one sphere, it directly returns its center and radius.
+    - For two spheres, it calculates the sphere that encloses both based on their furthest distance.
+    - For three spheres, it calculates using the circumcenter.
+    - For more than three spheres, it uses a combination of tetrahedral volumes to prioritize calculations and a fallback strategy that iteratively adjusts center and radius.
+    - The function can operate in a 'fast' mode which skips some computations for speed.
+
+    Args:
+    spheres (list of tuples): List of tuples where each tuple represents a sphere defined by its center (as a coordinate tuple) and radius.
+    plotting (bool): If True, enables plotting of the resulting sphere (not implemented in this snippet).
+    fast (bool): If True, skips the detailed calculation of tetrahedral volumes for speed.
+
+    Returns:
+    tuple: A tuple containing the center (as a tuple of coordinates) and the radius of the minimum enclosing sphere.
     """
 
-    # If there is only one sphere return the sphere
+    # Directly return the sphere if there's only one
     if len(spheres) == 1:
         return spheres[0][0], spheres[0][1]
 
-    # If there are multiple spheres, the simplest case is the enclosing sphere is defined by the furthest spheres
-    my_loc_rad = find_enclosing_sphere1(spheres)
-    if my_loc_rad is not None:
-        return my_loc_rad
+    # For two spheres find the minimum enclosing sphere for the two
+    if len(spheres) == 2:
+        return minimum_enclosing_sphere_for_two(*spheres)
 
-    # In the case of three spheres, the next best case is to do the three case with circumcenter and enclosing radius
+    # For three spheres, use a specific function for a minimum enclosing sphere
     if len(spheres) == 3:
         return minimum_enclosing_sphere_3(spheres)
 
-    # Set up the tetra spheres list
-    tetra_spheres = []
-    # Loop through the sphere combinations finding the tetrahedron volumes to see which provides the largest
-    for four_spheres in combinations(spheres, 4):
-        # Calculate the tetrahedron volumes
-        vol = calc_tetra_vol(*[_[0] for _ in four_spheres])
-        # Add the spheres and the volumes to new lists
-        tetra_spheres.append((four_spheres, vol))
-
-    # Sort the list by tetrahedron volume
-    sorted_spheres = sorted(tetra_spheres, key=lambda x: x[1], reverse=True)
-    sorted_spheres = [_[0] for _ in sorted_spheres]
-
-    # Set up the minimum radius and minimum location for the calculation of vertices
+    # Setup for a more complex calculation involving more than three spheres
     min_rad, min_loc = np.inf, None
-    # Check combinations starting with those spheres furthest from the center of mass
-    for four_spheres in sorted_spheres[:int(len(sorted_spheres) / 2)]:
-        loc_rad = calc_vert(four_spheres)
+    if not fast:
+        tetra_spheres = []
+        # Generate combinations of four spheres and calculate their tetrahedral volume
+        for four_spheres in combinations(spheres, 4):
+            vol = calc_tetra_vol(*[_[0] for _ in four_spheres])
+            tetra_spheres.append((four_spheres, vol))
 
-        if loc_rad is None:
-            continue
-        loc, rad = loc_rad
-        rad = abs(rad)
-        if encapsulates_all_spheres(loc, rad, spheres):
-            if rad is not None and rad < min_rad:
+        # Sort tetrahedrons by volume to prioritize larger, likely more challenging configurations
+        sorted_spheres = sorted(tetra_spheres, key=lambda x: x[1], reverse=True)
+        sorted_spheres = [_[0] for _ in sorted_spheres]
+
+        # Evaluate enclosing spheres starting with the largest tetrahedrons
+        for four_spheres in sorted_spheres[:int(len(sorted_spheres) / 2)]:
+            loc_rad = calc_vert(four_spheres)
+            if loc_rad is None:
+                continue
+            loc, rad = loc_rad
+            rad = abs(rad)
+            # Check if this sphere encapsulates all others
+            if encapsulates_all_spheres(loc, rad, spheres) and rad < min_rad:
                 min_rad = rad
                 min_loc = loc
-
-    my_loc, my_rad = find_enclosing_sphere(spheres)
+    # Attempt another strategy if the above does not yield a satisfactory result
+    my_loc, my_rad = minimum_enclosing_sphere_iterative(spheres, 100, 0.5)
     if (min_loc is None or my_rad < min_rad) and encapsulates_all_spheres(my_loc, my_rad, spheres):
         min_loc, min_rad = my_loc, my_rad
-
-    my_loc, my_rad = minimum_enclosing_sphere1(spheres)
-    if min_loc is None or my_rad < min_rad and encapsulates_all_spheres(my_loc, my_rad, spheres):
+    # Re-evaluate with a different method as a fallback
+    my_loc, my_rad = minimum_convex_hull_sphere(spheres)
+    if (min_loc is None or my_rad < min_rad) and encapsulates_all_spheres(my_loc, my_rad, spheres):
         min_loc, min_rad = my_loc, my_rad
 
     return min_loc, min_rad
