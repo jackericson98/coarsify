@@ -75,8 +75,7 @@ def read_pdb(sys):
     # Get the file information and make sure to close the file when done
     with open(file, 'r') as f:
         my_file = f.readlines()
-    # Add the system name and reset the atoms and data lists
-    sys.name = path.basename(sys.base_file)[:-4] + '_coarse'
+
     # Set up the atom and the data lists
     atoms, data = [], []
     sys.chains, sys.residues = [], []

@@ -65,6 +65,7 @@ class System:
         # Run the processes
         my_vals = settings_gui()
         self.get_vals(my_vals)
+        self.set_name()
         self.read_pdb()
         self.print_info()
         self.coarsify()
@@ -79,6 +80,19 @@ class System:
         self.therm_cush = my_vals['thermal cushion']
         self.sc_bb = my_vals['sc bb']
         self.dir = my_vals['output folder']
+
+    def set_name(self):
+        # Set up the sc_bb var
+        sc_bb = ''
+        if self.sc_bb:
+            sc_bb = '_Split'
+        mw = ''
+        if self.mass_weighted and self.scheme == 'Average Distance':
+            mw = '_MW'
+        # Add the system name and reset the atoms and data lists
+        name = path.basename(self.base_file)[:-4].capitalize() + '_' + self.scheme + sc_bb + mw
+        # Split and rejoin the name
+        self.name = '_'.join(name.split(' '))
 
     def read_pdb(self):
         """
