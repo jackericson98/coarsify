@@ -92,12 +92,36 @@ def find_circumcenter(a, b, c):
 
 
 def enclosing_sphere_radius(center, spheres):
-    """Calculate the minimum radius of the sphere that encloses the given spheres with given center."""
+    """
+    Computes the radius required for a sphere centered at a specified point to fully enclose a set of other spheres.
+
+    Args:
+        center (ndarray): The coordinates of the center of the proposed enclosing sphere.
+        spheres (list of tuples): A list of spheres, where each sphere is represented by a tuple containing
+                                  the sphere's center (as an ndarray of coordinates) and its radius.
+
+    Returns:
+        float: The minimum radius required for the sphere centered at `center` to enclose all the given spheres.
+
+    Notes:
+        - The function iterates through each sphere, calculates the distance from the proposed center to the sphere's
+          center, adds the sphere's radius, and tracks the maximum of these values to determine the minimum necessary
+          radius of the enclosing sphere.
+    """
+
+    # Initialize the maximum radius found to zero
     max_radius = 0
+
+    # Iterate through each sphere to find the furthest distance including its radius
     for (sphere_center, radius) in spheres:
+        # Calculate the distance from the given center to the sphere's center and add the sphere's radius
         distance = np.linalg.norm(center - sphere_center) + radius
+
+        # Update the maximum radius if the current distance is greater
         if distance > max_radius:
             max_radius = distance
+
+    # Return the maximum distance found, which is the required radius to enclose all spheres
     return max_radius
 
 
