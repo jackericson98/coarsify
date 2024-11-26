@@ -498,19 +498,47 @@ def calculate_weighted_average_sphere(spheres):
 
 
 def make_ball(atoms, scheme='Average Distance', mass_weighted=True, include_h=True, therm_cush=0.0):
-    # If the length of the atoms is 1 just return that location and radius
+    """
+    Constructs a representative "ball" (sphere) from a set of atomic data based on specified coarse graining schemes.
+    This function can be used to represent a molecular group by a single sphere based on various averaging methods.
+
+    Args:
+        atoms (list of dicts): Each dict represents an atom and must contain 'loc' (the location as a numpy array),
+                                'rad' (the radius), 'mass' (the atomic mass), and 'element' (the chemical element).
+        scheme (str): The coarse graining scheme to use. Options include 'Average Distance' and other custom schemes.
+        mass_weighted (bool): If True and using 'Average Distance', weights the average by atomic mass.
+        include_h (bool): If True, includes hydrogen atoms in the calculations; otherwise, excludes them.
+        therm_cush (float): A thermal cushion factor that might be used for adjusting calculations (not used in this code).
+
+    Returns:
+        tuple: A tuple containing the calculated location and radius of the sphere representing the group of atoms.
+
+    Notes:
+        - If only one atom is provided, the function directly returns its location and radius.
+        - Excluding hydrogen atoms can be useful for focusing on heavier atoms in structural representations.
+        - The 'Average Distance' scheme calculates an average sphere either mass-weighted or not, depending on the flag.
+        - The function allows for extension with other schemes and modifications like thermal cushions.
+    """
+
+    # Return the single atom's location and radius if only one atom is provided
     if len(atoms) == 1:
         return atoms[0]['loc'], atoms[0]['rad']
-    # If we are including h
+
+    # Filter out hydrogen atoms if not including them
     if not include_h:
-        atoms = [_ for _ in atoms if _['element'].lower() != 'h']
-    # Choose the scheme for coarse graining the residues
-    if scheme == 'Average Distance' and mass_weighted:
-        loc, rad = calculate_weighted_average_sphere([((a['loc'], a['rad']), a['mass']) for a in atoms])
-    elif scheme == 'Average Distance':
-        loc, rad = calculate_average_sphere([(a['loc'], a['rad']) for a in atoms])
+        atoms = [atom for atom in atoms if atom['element'].lower() != 'h']
+
+    # Choose the scheme for coarse graining
+    if scheme == 'Average Distance':
+        if mass_weighted:
+            # Calculate a mass-weighted average sphere
+            loc, rad = calculate_weighted_average_sphere([((atom['loc'], atom['rad']), atom['mass']) for atom in atoms])
+        else:
+            # Calculate a simple average sphere
+            loc, rad = calculate_average_sphere([(atom['loc'], atom['rad']) for atom in atoms])
     else:
-        loc, rad = minimum_enclosing_sphere([(_['loc'], _['rad']) for _ in atoms])
+        # Calculate the minimum enclosing sphere for the atoms
+        loc, rad = minimum_enclosing_sphere([(atom['loc'], atom['rad']) for atom in atoms])
 
     return loc, rad
 
