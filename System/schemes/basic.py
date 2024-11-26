@@ -293,11 +293,34 @@ def calculate_center_with_radii(spheres):
     return center_with_radii
 
 
-def encapsulates_all_spheres(loc, rad, spheres):
-    """Check if a candidate sphere encapsulates all the spheres."""
+def encapsulates_all_spheres(loc, rad, spheres, return_bad_sphere=False):
+    """
+    Determines whether a given sphere (defined by a center and radius) encapsulates a set of other spheres.
+
+    Args:
+    loc (tuple): The center of the candidate enclosing sphere as a tuple of coordinates.
+    rad (float): The radius of the candidate enclosing sphere.
+    spheres (list of tuples): A list where each tuple represents a sphere, defined by its center (tuple of coordinates) and its radius.
+    return_bad_sphere (bool): If True, the function returns the first sphere found that is not encapsulated. If False, the function simply returns True or False.
+
+    Returns:
+    bool or tuple: If `return_bad_sphere` is False, returns True if the candidate sphere encapsulates all given spheres, otherwise returns False.
+                   If `return_bad_sphere` is True, returns the center and radius of the first sphere that is not encapsulated, if any.
+    """
+
+    # Iterate through each sphere in the list to check for encapsulation
     for center, radius in spheres:
+        # Calculate the distance from the candidate sphere's center to the current sphere's center
+        # Add the radius of the current sphere to this distance
+        # If the sum is greater than the candidate sphere's radius, it means the current sphere is not fully encapsulated
         if round(calc_dist(center, loc) + radius, 4) > round(abs(rad), 4):
+            # If returning the first non-encapsulated sphere is requested, return its center and radius
+            if return_bad_sphere:
+                return center, radius
+            # Otherwise, return False indicating not all spheres are encapsulated
             return False
+
+    # If all spheres are encapsulated, return True
     return True
 
 
