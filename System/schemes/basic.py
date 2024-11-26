@@ -4,8 +4,6 @@ from System.sys_objs.ball import Ball
 import numpy as np
 from itertools import combinations
 from System.sys_funcs.verts import calc_vert
-from mpl_visualize import plot_verts, plot_balls
-import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 
 
