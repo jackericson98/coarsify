@@ -324,7 +324,7 @@ def encapsulates_all_spheres(loc, rad, spheres, return_bad_sphere=False):
     return True
 
 
-def minimum_enclosing_sphere1(spheres):
+def minimum_convex_hull_sphere(spheres):
     """
     Calculate the minimum enclosing sphere for a set of spheres using their convex hull.
 
