@@ -9,63 +9,128 @@ from System.sys_funcs.calcs import calc_dist
 
 
 def fix_sol(residue):
-    # Go through the atoms in the residue and pull the oxygens out
-    oxy_ress = []
+    """
+    Reorganizes atoms within a residue to ensure oxygen and hydrogen atoms are correctly grouped into water molecules.
+    Handles cases where there are extra or missing hydrogens.
+
+    Parameters:
+    residue (Residue): The residue object containing atoms to be organized.
+
+    Returns:
+    list: A list of 'Residue' objects with correctly assigned atoms.
+    """
+
+    # Initialize containers for oxygen and hydrogen atoms
+    oxy_res = []
+    hydrogens = []
+
+    # Separate oxygen and hydrogen atoms into different lists
     for atom in residue.atoms:
         if atom['element'].lower() == 'o':
-            oxy_ress.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'],
-                                    chain=atom['chn']))
-    # Now add the hydrogens to the correct oxygen
-    for atom in residue.atoms:
-        if atom['element'].lower() == 'h':
-            current_res, min_dist = None, np.inf
-            for res in oxy_ress:
-                atom_dist = calc_dist(res.atoms[0]['loc'], atom['loc'])
-                if atom_dist < min_dist:
-                    min_dist = atom_dist
-                    current_res = res
-            if current_res is None:
-                oxy_ress.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'], chain=atom['chn']))
-            else:
-                current_res.atoms.append(atom)
-    broken_resids = []
+            # Create a new residue for each oxygen atom
+            oxy_res.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'],
+                                   sequence=atom['res_seq'], chain=atom['chn']))
+        elif atom['element'].lower() == 'h':
+            hydrogens.append(atom)
+
+    # Assign hydrogens to the nearest oxygen atom to form water molecules
+    for h in hydrogens:
+        closest_res, min_dist = None, np.inf
+        for res in oxy_res:
+            dist = calc_dist(res.atoms[0]['loc'], h['loc'])
+            if dist < min_dist:
+                min_dist = dist
+                closest_res = res
+        if closest_res:
+            closest_res.atoms.append(h)
+
+    # Check the integrity of newly formed residues
     good_resids = []
-    for res in oxy_ress:
-        if len(res.atoms) != 3:
-            broken_resids.append(res)
-        else:
-            good_resids.append(res)
-    small_resids, missing_hs = [], []
-    for res in broken_resids:
-        if len(res.atoms) > 3:
-            res_atoms_dic = {}
-            for atom in res.atoms[1:]:
-                if atom['name'] in res_atoms_dic:
-                    if calc_dist(atom['loc'], res.atoms[0]['loc']) < calc_dist(res_atoms_dic[atom['name']]['loc'], res.atoms[0]['loc']):
-                        missing_hs.append(res_atoms_dic[atom['name']])
-                        res_atoms_dic[atom['name']] = atom
-                    else:
-                        missing_hs.append(atom)
-                else:
-                    res_atoms_dic[atom['name']] = atom
-            res.atoms = [res_atoms_dic[_] for _ in res_atoms_dic]
+    incomplete_resids = []
+    for res in oxy_res:
+        if len(res.atoms) == 3:  # A complete water molecule has 3 atoms: O and 2 H
             good_resids.append(res)
         else:
-            small_resids.append(res)
-    for h in missing_hs:
-        current_res, min_dist = None, np.inf
-        for res in oxy_ress:
-            atom_dist = calc_dist(res.atoms[0]['loc'], h['loc'])
-            if atom_dist < min_dist:
-                min_dist = atom_dist
-                current_res = res
-        current_res.atoms.append(h)
-    good_resids += small_resids
-    for res in good_resids:
-        if len(res.atoms) != 3:
-            print('No go')
+            incomplete_resids.append(res)
+
+    # Attempt to correct incomplete residues
+    for res in incomplete_resids:
+        if len(res.atoms) < 3:
+            # This block tries to find hydrogens that can be moved to this residue
+            for h in hydrogens:
+                dist = calc_dist(res.atoms[0]['loc'], h['loc'])
+                if dist < 1.5:  # Assumed maximum bond length for O-H
+                    res.atoms.append(h)
+                    hydrogens.remove(h)
+                if len(res.atoms) == 3:
+                    break
+        if len(res.atoms) != 3:  # Still incomplete after trying to add hydrogens
+            good_resids.append(res)  # Optionally, handle still incomplete residues separately
 
     return good_resids
+
+
+def fix_sol1(residue):
+    """
+    Creates water molecules by grouping oxygen and hydrogen atoms within a residue based on proximity rules.
+    Each molecule consists of one oxygen and up to two hydrogens, with a maximum O-H bond length of 1.5.
+    Unpaired atoms are returned as individual residues.
+
+    Parameters:
+    residue (Residue): The residue object containing atoms to be organized.
+
+    Returns:
+    list: A list of 'Residue' objects with correctly or singly assigned atoms.
+    """
+    # Separate atoms into oxygens and hydrogens
+    oxygens = [atom for atom in residue.atoms if atom['element'].lower() == 'o']
+    hydrogens = [atom for atom in residue.atoms if atom['element'].lower() == 'h']
+
+    # Initialize list for resulting residues
+    results = []
+
+    # Use a unique key (name and residue sequence number) for mapping
+    hydrogen_bonds = {f"{h['name']}_{h['res_seq']}": [] for h in hydrogens}
+    for h in hydrogens:
+        h_key = f"{h['name']}_{h['res_seq']}"
+        for o in oxygens:
+            dist = calc_dist(o['loc'], h['loc'])
+            if dist <= 1.5:
+                hydrogen_bonds[h_key].append((dist, o))
+
+    # Sort hydrogen lists by distance to prioritize closer bonds
+    for h_key in hydrogen_bonds:
+        hydrogen_bonds[h_key].sort()
+
+    # Assign hydrogens to oxygens, ensuring each oxygen gets no more than 2 hydrogens
+    oxygen_dict = {f"{o['name']}_{o['res_seq']}": [] for o in oxygens}
+    for h_key, bonds in hydrogen_bonds.items():
+        for dist, o in bonds:
+            o_key = f"{o['name']}_{o['res_seq']}"
+            if len(oxygen_dict[o_key]) < 2:
+                oxygen_dict[o_key].append(next(h for h in hydrogens if f"{h['name']}_{h['res_seq']}" == h_key))
+                break
+
+    # Create residues for each oxygen with its assigned hydrogens
+    for o_key, hs in oxygen_dict.items():
+        o = next(o for o in oxygens if f"{o['name']}_{o['res_seq']}" == o_key)
+        res_atoms = [o] + hs
+        results.append(Residue(sys=residue.sys, atoms=res_atoms, name=o['residue'],
+                               sequence=o['res_seq'], chain=o['chn']))
+
+    # Handle unassigned atoms
+    assigned_hydrogens = {f"{h['name']}_{h['res_seq']}" for hs in oxygen_dict.values() for h in hs}
+    unassigned_hydrogens = [h for h in hydrogens if f"{h['name']}_{h['res_seq']}" not in assigned_hydrogens]
+    unassigned_oxygens = [o for o in oxygens if f"{o['name']}_{o['res_seq']}" not in oxygen_dict]
+
+    for atom in unassigned_hydrogens + unassigned_oxygens:
+        results.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'],
+                               sequence=atom['res_seq'], chain=atom['chn']))
+
+    return results
+
+
+
 
 
 def read_pdb(sys):
@@ -171,7 +236,7 @@ def read_pdb(sys):
     adjusted_residues = []
     for res in sys.residues:
         if res.name == 'SOL' and len(res.atoms) > 3:
-            adjusted_residues += fix_sol(res)
+            adjusted_residues += fix_sol1(res)
         else:
             adjusted_residues.append(res)
     sys.residues = adjusted_residues
