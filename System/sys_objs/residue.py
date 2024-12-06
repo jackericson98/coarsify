@@ -67,6 +67,7 @@ residue_colors = {
     "Default": {"Shapely": "0xFF00FF"},
     # Sol colors
     "SOL": {"Shapely": "0x00FFFF"},
+    "HOH": {"Shapely": "0x00FFFF"},
     # Single atom colors
     "MG": {"Shapely": "0x00FA6D"},
     "C": {'Shapely': "0xC8C8C8"},
