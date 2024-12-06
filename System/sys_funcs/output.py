@@ -78,6 +78,7 @@ def write_pdb(sys):
             elem = ball.element
             if len(ball.atoms) == 1:
                 elem = ball.atoms[0]['element']
+                atom_name = ball.atoms[0]['name']
 
             # Write the atom information
             pdb_file.write(pdb_line(ser_num=ball.index, name=atom_name, res_name=res_name, chain=chain, res_seq=res_seq,
@@ -96,9 +97,13 @@ def write_pymol_atoms(sys, set_sol=True, file_name=None):
     # Create the file
     with open(file_name, 'w') as file:
         for ball in sys.balls:
-            if not set_sol and ball.name.lower() == 'sol':
+            if not set_sol and ball.name.lower() in {'sol', 'hoh'}:
                 continue
-            file.write("alter ({} and resn {} and resi {} and name {}), vdw={}\n".format(sys.name, ball.name, ball.seq, ball.element, round(ball.rad, 3)))
+            name = ball.element
+            if len(ball.atoms) == 1:
+                name = ball.atoms[0]['name']
+            file.write("alter ({} and resn {} and resi {} and name {}), vdw={}\n"
+                       .format(sys.name, ball.name, ball.seq, name, round(ball.rad, 3)))
         # Rebuild the system
         file.write("\nrebuild")
     os.chdir(start_dir)
@@ -115,6 +120,9 @@ def color_pymol_balls(sys, bb_sc=False):
     # Create the file
     with open(file_name, 'w') as file:
         for ball in sys.balls:
+            if len(ball.atoms) == 1:
+                continue
+
             if not bb_sc:
                 file.write("color {}, ({} and resn {} and resi {} and name {})\n".format(ball.residues[0].color, sys.name, ball.name, ball.seq,
                                                                                   ball.element))
