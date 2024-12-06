@@ -532,13 +532,13 @@ def make_ball(atoms, scheme='Average Distance', mass_weighted=True, include_h=Tr
     if scheme == 'Average Distance':
         if mass_weighted:
             # Calculate a mass-weighted average sphere
-            loc, rad = calculate_weighted_average_sphere([((atom['loc'], atom['rad']), atom['mass']) for atom in atoms])
+            loc, rad = calculate_weighted_average_sphere([((np.array(atom['loc']), atom['rad']), atom['mass']) for atom in atoms])
         else:
             # Calculate a simple average sphere
-            loc, rad = calculate_average_sphere([(atom['loc'], atom['rad']) for atom in atoms])
+            loc, rad = calculate_average_sphere([(np.array(atom['loc']), atom['rad']) for atom in atoms])
     else:
         # Calculate the minimum enclosing sphere for the atoms
-        loc, rad = minimum_enclosing_sphere([(atom['loc'], atom['rad']) for atom in atoms])
+        loc, rad = minimum_enclosing_sphere([(np.array(atom['loc']), atom['rad']) for atom in atoms])
 
     return loc, rad
 
@@ -554,6 +554,8 @@ def coarsify(sys):
     start_time = time.perf_counter()
     # Loop through the residues in the system
     for i, res in enumerate(sys.residues):
+        # Get the residues atoms
+        res_atoms = sys.atoms.iloc[res.atoms].to_dict(orient='records')
         # Get the percentage and print it
         percentage = min((i / (len(sys.residues) - len(sys.sol.residues))) * 100, 100)
         my_time = time.perf_counter() - start_time
@@ -564,7 +566,7 @@ def coarsify(sys):
         if res.name in sys.nucleics and sys.sc_bb:
             sugs, phos, nbase, hs, mass = [], [], [], [], 0
             # Get the back bone atoms and the side chain atoms
-            for atom in res.atoms:
+            for atom in res_atoms:
                 if atom['element'].lower() == 'h':
                     hs.append(atom)
                 elif atom['name'] in sys.nucleic_pphte:
@@ -599,7 +601,7 @@ def coarsify(sys):
 
             # Sort the unknown hydrogen into their different groups
             for atom in hs:
-                atom_dists = [(calc_dist(atom['loc'], _['loc']), _) for _ in res.atoms if _['element'].lower() != 'h']
+                atom_dists = [(calc_dist(atom['loc'], _['loc']), _) for _ in res_atoms if _['element'].lower() != 'h']
                 near_atoms = sorted(atom_dists, key=lambda x: x[0])
                 close_atom = near_atoms[0][1]
                 if close_atom['name'] in sys.nucleic_pphte:
@@ -633,7 +635,7 @@ def coarsify(sys):
         elif res.name in sys.aminos and sys.sc_bb:
             bb_atoms, sc_atoms = [], []
             # Get the back bone atoms and the side chain atoms
-            for atom in res.atoms:
+            for atom in res_atoms:
                 if atom['name'] in sys.amino_bbs:
                     bb_atoms.append(atom)
                 elif atom['name'] in sys.amino_scs:
@@ -668,9 +670,9 @@ def coarsify(sys):
                                       name=res.name, chain=res.chain, seq=res.seq, residue_subsection='sc', mass=mass))
         else:
             # Get the loc and rad
-            loc, rad = make_ball(res.atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
+            loc, rad = make_ball(res_atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
             # Calculate the mass of the ball
-            mass = sum([_['mass'] for _ in res.atoms])
+            mass = sum([_['mass'] for _ in res_atoms])
             # Create the ball object
-            sys.balls.append(Ball(loc=loc, rad=rad, element=res.elem_col, residues=[res], atoms=res.atoms,
+            sys.balls.append(Ball(loc=loc, rad=rad, element=res.elem_col, residues=[res], atoms=res_atoms,
                                   name=res.name, chain=res.chain, seq=res.seq, mass=mass))
