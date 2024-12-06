@@ -70,69 +70,6 @@ def fix_sol(residue):
     return good_resids
 
 
-def fix_sol1(residue):
-    """
-    Creates water molecules by grouping oxygen and hydrogen atoms within a residue based on proximity rules.
-    Each molecule consists of one oxygen and up to two hydrogens, with a maximum O-H bond length of 1.5.
-    Unpaired atoms are returned as individual residues.
-
-    Parameters:
-    residue (Residue): The residue object containing atoms to be organized.
-
-    Returns:
-    list: A list of 'Residue' objects with correctly or singly assigned atoms.
-    """
-    # Separate atoms into oxygens and hydrogens
-    oxygens = [atom for atom in residue.atoms if atom['element'].lower() == 'o']
-    hydrogens = [atom for atom in residue.atoms if atom['element'].lower() == 'h']
-
-    # Initialize list for resulting residues
-    results = []
-
-    # Use a unique key (name and residue sequence number) for mapping
-    hydrogen_bonds = {f"{h['name']}_{h['res_seq']}": [] for h in hydrogens}
-    for h in hydrogens:
-        h_key = f"{h['name']}_{h['res_seq']}"
-        for o in oxygens:
-            dist = calc_dist(o['loc'], h['loc'])
-            if dist <= 1.5:
-                hydrogen_bonds[h_key].append((dist, o))
-
-    # Sort hydrogen lists by distance to prioritize closer bonds
-    for h_key in hydrogen_bonds:
-        hydrogen_bonds[h_key].sort()
-
-    # Assign hydrogens to oxygens, ensuring each oxygen gets no more than 2 hydrogens
-    oxygen_dict = {f"{o['name']}_{o['res_seq']}": [] for o in oxygens}
-    for h_key, bonds in hydrogen_bonds.items():
-        for dist, o in bonds:
-            o_key = f"{o['name']}_{o['res_seq']}"
-            if len(oxygen_dict[o_key]) < 2:
-                oxygen_dict[o_key].append(next(h for h in hydrogens if f"{h['name']}_{h['res_seq']}" == h_key))
-                break
-
-    # Create residues for each oxygen with its assigned hydrogens
-    for o_key, hs in oxygen_dict.items():
-        o = next(o for o in oxygens if f"{o['name']}_{o['res_seq']}" == o_key)
-        res_atoms = [o] + hs
-        results.append(Residue(sys=residue.sys, atoms=res_atoms, name=o['residue'],
-                               sequence=o['res_seq'], chain=o['chn']))
-
-    # Handle unassigned atoms
-    assigned_hydrogens = {f"{h['name']}_{h['res_seq']}" for hs in oxygen_dict.values() for h in hs}
-    unassigned_hydrogens = [h for h in hydrogens if f"{h['name']}_{h['res_seq']}" not in assigned_hydrogens]
-    unassigned_oxygens = [o for o in oxygens if f"{o['name']}_{o['res_seq']}" not in oxygen_dict]
-
-    for atom in unassigned_hydrogens + unassigned_oxygens:
-        results.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'],
-                               sequence=atom['res_seq'], chain=atom['chn']))
-
-    return results
-
-
-
-
-
 def read_pdb(sys):
     # Check to see if the file is provided and use the base file if not
     file = sys.base_file
@@ -153,9 +90,9 @@ def read_pdb(sys):
             continue
         # Pull the file line and first word
         line = my_file[i]
-        word = line[:4].lower()
+        word = line[:6].lower().strip()
         # Check to see if the line is an atom line. If the line is not an atom line store the other data
-        if line and word != 'atom':
+        if line and word not in {'atom', 'hetatm'}:
             data.append(my_file[i].split())
             continue
         # Check for the "m" situation
@@ -236,7 +173,7 @@ def read_pdb(sys):
     adjusted_residues = []
     for res in sys.residues:
         if res.name == 'SOL' and len(res.atoms) > 3:
-            adjusted_residues += fix_sol1(res)
+            adjusted_residues += fix_sol(res)
         else:
             adjusted_residues.append(res)
     sys.residues = adjusted_residues
