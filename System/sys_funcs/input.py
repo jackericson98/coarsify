@@ -6,9 +6,10 @@ from System.sys_objs.residue import Residue
 import numpy as np
 from pandas import DataFrame
 from System.sys_funcs.calcs import calc_dist
+from chemistry_interpreter import my_masses
 
 
-def fix_sol(residue):
+def fix_sol(sys, residue):
     """
     Reorganizes atoms within a residue to ensure oxygen and hydrogen atoms are correctly grouped into water molecules.
     Handles cases where there are extra or missing hydrogens.
@@ -25,24 +26,27 @@ def fix_sol(residue):
     hydrogens = []
 
     # Separate oxygen and hydrogen atoms into different lists
-    for atom in residue.atoms:
+    for a in residue.atoms:
+        atom = sys.atoms.iloc[a]
+
         if atom['element'].lower() == 'o':
             # Create a new residue for each oxygen atom
-            oxy_res.append(Residue(sys=residue.sys, atoms=[atom], name=atom['residue'],
+            oxy_res.append(Residue(sys=residue.sys, atoms=[a], name=atom['residue'],
                                    sequence=atom['res_seq'], chain=atom['chn']))
         elif atom['element'].lower() == 'h':
-            hydrogens.append(atom)
+            hydrogens.append(atom['num'])
 
     # Assign hydrogens to the nearest oxygen atom to form water molecules
     for h in hydrogens:
         closest_res, min_dist = None, np.inf
         for res in oxy_res:
-            dist = calc_dist(res.atoms[0]['loc'], h['loc'])
+            dist = calc_dist(sys.atoms['loc'][res.atoms[0]], sys.atoms['loc'][h])
             if dist < min_dist:
                 min_dist = dist
                 closest_res = res
-        if closest_res:
+        if closest_res and min_dist < 1.5:
             closest_res.atoms.append(h)
+            hydrogens.remove(h)
 
     # Check the integrity of newly formed residues
     good_resids = []
@@ -50,6 +54,8 @@ def fix_sol(residue):
     for res in oxy_res:
         if len(res.atoms) == 3:  # A complete water molecule has 3 atoms: O and 2 H
             good_resids.append(res)
+            for a in res.atoms:
+                sys.atoms.loc[a, 'res'] = res
         else:
             incomplete_resids.append(res)
 
@@ -58,14 +64,34 @@ def fix_sol(residue):
         if len(res.atoms) < 3:
             # This block tries to find hydrogens that can be moved to this residue
             for h in hydrogens:
-                dist = calc_dist(res.atoms[0]['loc'], h['loc'])
+                dist = calc_dist(sys.atoms['loc'][res.atoms[0]], sys.atoms['loc'][h])
                 if dist < 1.5:  # Assumed maximum bond length for O-H
                     res.atoms.append(h)
                     hydrogens.remove(h)
                 if len(res.atoms) == 3:
                     break
-        if len(res.atoms) != 3:  # Still incomplete after trying to add hydrogens
-            good_resids.append(res)  # Optionally, handle still incomplete residues separately
+            # print([(sys.atoms['name'][_], sys.atoms['res_seq'][_], sys.atoms['loc'][_][0]) for _ in res.atoms])
+        good_resids.append(res)
+
+    # Las sort the hydrogens
+    if len(hydrogens) == 1:
+        h = hydrogens[0]
+        good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=sys.atoms['name'][h],
+                                   sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
+    elif len(hydrogens) == 2:
+        h1, h2 = sys.atoms.iloc[hydrogens[0]], sys.atoms.iloc[hydrogens[1]]
+        if calc_dist(h1['loc'], h2['loc']) < 2 and h1['name'] != h2['name']:
+            good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=h1['residue'],
+                                       sequence=h1['res_seq'], chain=h1['chn']))
+        else:
+            for h in hydrogens:
+                good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=sys.atoms['name'][h],
+                                           sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
+    else:
+        for h in hydrogens:
+            good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=sys.atoms['name'][h],
+                                       sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
+    # print([(sys.atoms['name'][_], sys.atoms['res_seq'][_], sys.atoms['loc'][_][0]) for _ in hydrogens])
 
     return good_resids
 
@@ -83,7 +109,7 @@ def read_pdb(sys):
     sys.chains, sys.residues = [], []
     chains, resids = {}, {}
     # Go through each line in the file and check if the first word is the word we are looking for
-    reset_checker = 0
+    reset_checker, atom_count = 0, 0
     for i in range(len(my_file)):
         # Check to make sure the line isn't empty
         if len(my_file[i]) == 0:
@@ -98,42 +124,50 @@ def read_pdb(sys):
         # Check for the "m" situation
         if line[76:78] == ' M':
             continue
-        # Get the residue sequence of the atom
-        res_seq = int(line[22:26])
+
+        name = line[12:16]
+        res_seq = line[22:26]
         if line[22:26] == '    ':
             res_seq = 0
+        # If no chain is specified, set the chain to 'None'
+        res_str, chain_str = line[17:20].strip(), line[21]
+
+        # Create the atom
+        mass = my_masses[line[76:78].strip().lower()]
         # Create the atom
         atom = make_atom(location=np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])]),
-                         system=sys, element=line[76:78].strip(), res_seq=res_seq, name=line[12:16].strip(),
-                         seg_id=line[72:76], index=line[6:11], chain=line[21], residue=line[17:20].strip())
-        # Collect the chain type for each atom
-        if atom['chain'] == ' ':
-            if atom['residue'].lower() in {'sol', 'hoh', 'sod', 'w'}:
-                atom['chain'] = 'Z'
-            elif atom['residue'].lower() in {'cl', 'mg', 'na', 'k', 'ion'} and 'Z' in chains:
-                atom['chain'] = 'X'
+                         system=sys,
+                         element=line[76:78].strip(), res_seq=int(res_seq), res_name=res_str, chn_name=chain_str,
+                         name=name.strip(), seg_id=line[72:76], index=atom_count, mass=mass)
+        atom_count += 1
+
+        if chain_str == ' ':
+            if res_str.lower() in {'sol', 'hoh', 'sod', 'out', 'cl', 'mg', 'na', 'k', 'ion', 'cla'}:
+                chain_str = 'SOL'
             else:
-                atom['chain'] = 'A'
+                chain_str = 'A'
+
         # Create the chain and residue dictionaries
-        res_name = atom['chain'] + '_' + atom['residue'] + '_' + str(atom['res_seq']) + '_' + str(reset_checker)
+        res_name, chn_name = chain_str + '_' + line[17:20] + str(atom['res_seq']) + '_' + str(reset_checker), chain_str
         # If the chain has been made before
-        if atom['chain'] in chains:
+        if chn_name in chains:
             # Get the chain from the dictionary and add the atom
-            my_chn = chains[atom['chain']]
+            my_chn = chains[chn_name]
             my_chn.add_atom(atom['num'])
             atom['chn'] = my_chn
         # Create the chain
         else:
             # If the chain is the sol chain
-            if atom['chain'] == 'Z':
-                my_chn = Sol(atoms=[atom['num']], residues=[], name=atom['chain'], sys=sys)
+            if res_str.lower() in {'sol', 'hoh', 'sod', 'out', 'cl', 'mg', 'na', 'k', 'ion',
+                                   'cla'} or chn_name == 'SOL':
+                my_chn = Sol(atoms=[atom['num']], residues=[], name=chn_name, sys=sys)
                 sys.sol = my_chn
             # If the chain is not sol create a regular chain object
             else:
-                my_chn = Chain(atoms=[atom['num']], residues=[], name=atom['chain'], sys=sys)
+                my_chn = Chain(atoms=[atom['num']], residues=[], name=chn_name, sys=sys)
                 sys.chains.append(my_chn)
             # Set the chain in the dictionary and give the atom it's chain
-            chains[atom['chain']] = my_chn
+            chains[chn_name] = my_chn
             atom['chn'] = my_chn
 
         # Assign the atoms and create the residues
@@ -142,22 +176,22 @@ def read_pdb(sys):
         #     atom['chn'].residues.append(my_res)
         #     resids[res_name] = my_res
         #     sys.residues.append(my_res)
+        # Assign the atoms and create the residues
         if res_name in resids:
             my_res = resids[res_name]
-            my_res.atoms.append(atom)
+            my_res.atoms.append(atom['num'])
         else:
-            my_res = Residue(sys=sys, atoms=[atom], name=atom['residue'], sequence=atom['res_seq'], chain=atom['chn'])
-            atom['chn'].residues.append(my_res)
+            my_res = Residue(sys=sys, atoms=[atom['num']], name=res_str, sequence=atom['res_seq'],
+                             chain=atom['chn'])
             resids[res_name] = my_res
-            sys.residues.append(my_res)
+            if res_str.lower() in {'sol', 'hoh', 'sod', 'out', 'cl', 'mg', 'na', 'k', 'ion',
+                                   'cla'} or chain_str == 'SOL':
+                sys.sol.residues.append(my_res)
+            else:
+                sys.residues.append(my_res)
+                atom['chn'].residues.append(my_res)
         # Assign the residue to the atom
         atom['res'] = my_res
-
-        # Assign the radius
-        atom['rad'] = get_radius(atom)
-
-        # Assign the mass
-        atom['mass'] = sys.masses[atom['element'].lower()]
 
         # If the residue numbers roll over reset the name of the residue to distinguish between the residues
         atoms.append(atom)
@@ -169,14 +203,21 @@ def read_pdb(sys):
                   'PHE': 'Si', 'PRO': 'P', 'SER': 'S', 'THR': 'Cl', 'TRP': 'Ar', 'TYR': 'K', 'VAL': 'Ca',
                   'SOL': 'Ti', 'DA': 'N', 'DC': 'O', 'DG': 'F', 'DT': 'S', 'NA': 'NA', 'CL': 'CL', 'MG': 'MG',
                   'K': 'K'}
-    # Set the residues' colors and let the default go to Titanium (Grey)
+
+    # Set the atoms and the data
+    sys.atoms, sys.settings = DataFrame(atoms), data
+    # Adjust the SOL residues
     adjusted_residues = []
-    for res in sys.residues:
-        if res.name == 'SOL' and len(res.atoms) > 3:
-            adjusted_residues += fix_sol(res)
+    for res in sys.sol.residues:
+        if len(res.atoms) > 3:
+            try:
+                adjusted_residues += fix_sol(sys, res)
+            except TypeError:
+                print(res.atoms)
         else:
             adjusted_residues.append(res)
-    sys.residues = adjusted_residues
+
+    sys.sol.residues = adjusted_residues
     for res in sys.residues:
         if res.name == 'ION':
             res.elem_col = res.atoms[0]['name']
@@ -184,6 +225,3 @@ def read_pdb(sys):
             res.elem_col = 'Al'
         else:
             res.elem_col = 'Ti'
-
-    # Set the atoms and the data
-    sys.atoms, sys.settings = DataFrame(atoms), data
