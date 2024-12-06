@@ -13,7 +13,7 @@ from GUI import settings_gui
 class System:
     def __init__(self, file=None, atoms=None, output_directory=None, root_dir=None, print_actions=False, residues=None,
                  chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0, include_h=True,
-                 mass_weighted=True, sc_bb=None, color_scheme='Shapely'):
+                 mass_weighted=True, sc_bb=None, color_scheme='Shapely', all_methods=False):
         """
         Class used to import files of all types and return a System
         :param file: Base system file address
@@ -27,6 +27,7 @@ class System:
         self.include_h = include_h
         self.mass_weighted = mass_weighted
         self.sc_bb = sc_bb
+        self.all = all_methods
 
         # Loadable objects
         self.atoms = atoms                  # Atoms               :   List holding the atom objects
@@ -64,6 +65,10 @@ class System:
 
         # Run the processes
         my_vals = settings_gui()
+        if my_vals['cg method'] == 'All Schemes':
+            self.run_all_schemes(my_vals)
+            return
+
         self.get_vals(my_vals)
         self.set_name()
         self.read_pdb()
@@ -73,6 +78,7 @@ class System:
         self.output(self.dir)
 
     def get_vals(self, my_vals):
+
         self.include_h = my_vals['include h']
         self.base_file = my_vals['input file']
         self.scheme = my_vals['cg method']
@@ -101,6 +107,24 @@ class System:
         :return: list of tuples of locations and radii
         """
         read_pdb(self)
+
+    def run_all_schemes(self, my_vals):
+        for scheme in ['Encapsulate', 'Average Distance']:
+            for sc_bb_val in [True, False]:
+                for mass_weight_val in [True, False]:
+                    if mass_weight_val and scheme == 'Encapsulate':
+                        continue
+                    # Reset everything
+                    self.balls, self.name, self.dir, self.scheme = None, None, None, None
+                    # Set my_vals values
+                    my_vals['cg method'], my_vals['sc bb'], my_vals['mass weighted'] = scheme, sc_bb_val, mass_weight_val
+                    self.get_vals(my_vals)
+                    self.set_name()
+                    self.read_pdb()
+                    self.print_info()
+                    self.coarsify()
+                    self.set_sys_dir()
+                    self.output(self.dir)
 
     def print_info(self):
         """

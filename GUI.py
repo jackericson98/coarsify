@@ -22,7 +22,7 @@ def settings_gui():
             "thermal cushion": float(thermal_cushion_var.get()),
             "sc bb": sc_bb_var.get(),
             "include h": include_h_var.get(),
-            "output folder": output_folder_var.get()
+            "output folder": output_folder_var.get(),
         }
         root.destroy()
         return settings  # Or replace this with return data if using within another function or script
@@ -70,7 +70,7 @@ def settings_gui():
 
     # Methodology
     tk.Label(root, text='CG Method').grid(row=1, column=0)
-    method_menu = ttk.Combobox(root, textvariable=cg_method_var, values=['Encapsulate', 'Average Distance', 'Martini'])
+    method_menu = ttk.Combobox(root, textvariable=cg_method_var, values=['Encapsulate', 'Average Distance', 'Martini', 'All Schemes'])
     method_menu.grid(row=1, column=1, columnspan=2)
     method_menu.current(0)
 
