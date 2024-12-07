@@ -49,8 +49,15 @@ def write_pdb(sys):
 
         # Go through each atom in the system
         for i, ball in enumerate(sys.balls):
+            # Skip any sol with way too big of a radius
+            if ball.chain.name in ['SOL', 'Z', 'X', 'W'] and ball.rad > 10:
+                print('\nThe Ball {}, {}, {} (a part of SOL) has a radius of {} and was skipped'
+                      .format(ball.name, ball.index, ball.seq, ball.rad))
+                continue
+            # Set the ball index
             if ball.index is None:
                 ball.index = i
+            # Make sure the ball index is set correctly
             ball.index = str(int(ball.index) % 100000)
             atom_name = ball.element
             if ball.name == 'W':
@@ -79,7 +86,6 @@ def write_pdb(sys):
             if len(ball.atoms) == 1:
                 elem = ball.atoms[0]['element']
                 atom_name = ball.atoms[0]['name']
-
             # Write the atom information
             pdb_file.write(pdb_line(ser_num=ball.index, name=atom_name, res_name=res_name, chain=chain, res_seq=res_seq,
                                     x=x, y=y, z=z, occ=occ, tfact=tfact, elem=elem, charge=charge))
