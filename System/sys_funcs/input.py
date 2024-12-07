@@ -100,12 +100,7 @@ def fix_sol(sys, residue):
         h1 = sys.atoms.iloc[hydrogens[0]]
         good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=h1['residue'],
                                    sequence=h1['res_seq'], chain=h1['chn']))
-    # print([(sys.atoms['name'][_], sys.atoms['res_seq'][_], sys.atoms['loc'][_][0]) for _ in hydrogens])
-    for res in good_resids:
 
-        if len(res.atoms) > 3:
-
-            print([(sys.atoms['name'][_], sys.atoms['loc'][_], sys.atoms['element'][_], res.seq) for _ in res.atoms])
     return good_resids
 
 
