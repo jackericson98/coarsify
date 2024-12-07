@@ -39,12 +39,13 @@ def get_radius(atom, my_radii=None):
 
 
 def make_atom(system=None, location=None, radius=None, index='', name='', residue='', chain='', chn_name='',
-              res_name='', res_seq="", seg_id="", element="", chn=None, res=None, mass=None):
+              res_name='', res_seq="", seg_id="", element="", chn=None, res=None, mass=None, set_index=None):
     atom = {
         # System groups
         'sys': system,           # System       :   Main system object
 
-        'num': index,            # Number       :   The index from the initial atom file
+        'num': index,            # Number       :   The position index from the initial atom file
+        'index': set_index,      # Set Index    :   The number that is in the index position of the pdb file
         'loc': location,         # Location     :   Set the location of the center of the sphere
         'rad': radius,           # Radius       :   Set the radius for the sphere object. Default is 1
 
