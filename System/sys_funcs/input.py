@@ -33,6 +33,8 @@ def fix_sol(sys, residue):
             # Create a new residue for each oxygen atom
             oxy_res.append(Residue(sys=residue.sys, atoms=[a], name='SOL',
                                    sequence=atom['res_seq'], chain=atom['chn']))
+            # Add the residue to the atom
+            sys.atoms.loc[a, 'res'] = oxy_res[-1]
         elif atom['element'].lower() == 'h':
             hydrogens.append(atom['num'])
 
@@ -46,6 +48,8 @@ def fix_sol(sys, residue):
                 closest_res = res
         if closest_res and min_dist < 2.5:
             closest_res.atoms.append(h)
+            # Add the residue to the atom
+            sys.atoms.loc[h, 'res'] = closest_res
             hydrogens.remove(h)
 
     # Check the integrity of newly formed residues
@@ -67,39 +71,23 @@ def fix_sol(sys, residue):
                 dist = calc_dist(sys.atoms['loc'][res.atoms[0]], sys.atoms['loc'][h])
                 if dist < 2.5:  # Assumed maximum bond length for O-H
                     res.atoms.append(h)
+                    # Add the residue to the atom
+                    sys.atoms.loc[h, 'res'] = res
                     hydrogens.remove(h)
                 if len(res.atoms) == 3:
                     break
             # print([(sys.atoms['name'][_], sys.atoms['res_seq'][_], sys.atoms['loc'][_][0]) for _ in res.atoms])
         good_resids.append(res)
 
-    # Las sort the hydrogens
-    if len(hydrogens) == 1:
-        h = hydrogens[0]
-        good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name='SOL',
-                                   sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
-    elif len(hydrogens) == 2:
-        h1, h2 = sys.atoms.iloc[hydrogens[0]], sys.atoms.iloc[hydrogens[1]]
-        if calc_dist(h1['loc'], h2['loc']) < 3 and h1['name'] != h2['name']:
-            good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name='SOL',
-                                       sequence=h1['res_seq'], chain=h1['chn']))
-        else:
-            for h in hydrogens:
-                good_resids.append(Residue(sys=residue.sys, atoms=[h], name='SOL',
-                                           sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
-    elif len(hydrogens) == 4:
-        # Get the first hydrogen
-        h1 = sys.atoms.iloc[hydrogens[0]]
-        # Find it's pair
-        for h in hydrogens[1:]:
-            if sys.atoms['name'][h][:-1] == h1['name'][:-1] and calc_dist(sys.atoms['loc'][h], h1['loc']) < 3:
-                hydrogens = [_ for _ in hydrogens[1:] if _ != h]
-                good_resids.append(Residue(sys=residue.sys, atoms=[h1['num'], h], name='SOL',
-                                           sequence=h1['res_seq'], chain=h1['chn']))
-        # Get the first hydrogen
-        h1 = sys.atoms.iloc[hydrogens[0]]
-        good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name='SOL',
-                                   sequence=h1['res_seq'], chain=h1['chn']))
+    # Last give the hydrogens their own residues
+    for h in hydrogens:
+        # Get the hydrogen atoms
+        hy = sys.atoms.iloc[h]
+        # Create the residue
+        good_resids.append(Residue(sys=residue.sys, atoms=[h], name='SOL', sequence=hy['res_seq'], chain=hy['chn'],
+                                   element='H'))
+        # Add the residue to the atom
+        sys.atoms.loc[h, 'res'] = good_resids[-1]
 
     return good_resids
 
@@ -146,7 +134,7 @@ def read_pdb(sys):
         atom = make_atom(location=np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])]),
                          system=sys,
                          element=line[76:78].strip(), res_seq=int(res_seq), res_name=res_str, chn_name=chain_str,
-                         name=name.strip(), seg_id=line[72:76], index=atom_count, mass=mass)
+                         name=name.strip(), seg_id=line[72:76], index=atom_count, set_index=int(line[6:11]), mass=mass)
         atom_count += 1
 
         if chain_str == ' ':
@@ -201,8 +189,9 @@ def read_pdb(sys):
         # Assign the residue to the atom
         atom['res'] = my_res
 
-        # If the residue numbers roll over reset the name of the residue to distinguish between the residues
+        # Add the atom
         atoms.append(atom)
+        # If the residue numbers roll over reset the name of the residue to distinguish between the residues
         if res_seq == 9999:
             reset_checker += 1
     # Set the colors for the residues based off the default colors for set elements
@@ -218,11 +207,51 @@ def read_pdb(sys):
     adjusted_residues = []
     for res in sys.sol.residues:
         if len(res.atoms) > 3:
-            try:
-                adjusted_residues += fix_sol(sys, res)
-            except TypeError:
-                print(res.atoms)
+            adjusted_residues += fix_sol(sys, res)
         else:
             adjusted_residues.append(res)
-
+    # Add the sys.sol residues
     sys.sol.residues = adjusted_residues
+    # Instantiate the separated residues
+    new_residues = []
+    # Do a final check
+    for res in sys.sol.residues:
+        # Check that they have neighboring indices
+        indices = [sys.atoms['index'][_] for _ in res.atoms]
+        # Check for differences greater than 2
+        if any([_ > 2 for _ in [abs(indices[0] - __) for __ in indices]]):
+            # Get the locations
+            locs = [sys.atoms['loc'][_] for _ in res.atoms]
+            # Scrutinize their relative distances
+            if any([calc_dist(locs[0], _) > 5 for _ in locs]):
+                # Remove the residue and split its atoms into separate atom residues.
+                sys.sol.residues.remove(res)
+                # Split the residue into separate residues
+                for a in res.atoms:
+                    # Get the atom from the dataframe
+                    atom = sys.atoms.iloc[a]
+                    # Create the new residue
+                    new_residues.append(Residue(sys=res.sys, atoms=[a], name=atom['name'], sequence=atom['res_seq'],
+                                                chain=atom['chn'], element=atom['element']))
+                    # Add the residue to the atom
+                    sys.atoms.loc[a, 'res'] = new_residues[-1]
+                # No need to split again
+                continue
+        # Check for the atom types
+        a_types = [sys.atoms['element'][_] for _ in res.atoms]
+        # Check that there arent more than one o and 2 h
+        if len([_ for _ in a_types if 'o' in _.lower()]) > 1 or len([_ for _ in a_types if 'h' in _.lower()]) > 2:
+            # Remove the residue and split its atoms into separate atom residues.
+            sys.sol.residues.remove(res)
+            # Split the residue into separate residues
+            for a in res.atoms:
+                # Get the atom from the dataframe
+                atom = sys.atoms.iloc[a]
+                # Create the new residue
+                new_residues.append(Residue(sys=res.sys, atoms=[a], name=atom['name'], sequence=atom['res_seq'],
+                                            chain=atom['chn'], element=atom['element']))
+                # Add the residue to the atom
+                sys.atoms.loc[a, 'res'] = new_residues[-1]
+
+    # Add the residues to the sys.sol
+    sys.sol.residues += new_residues
