@@ -1,5 +1,5 @@
 class Residue:
-    def __init__(self, atoms=None, name=None, sys=None, mol=None, sequence=None, seg_id=None, chain=None):
+    def __init__(self, atoms=None, name=None, sys=None, mol=None, sequence=None, seg_id=None, chain=None, element='Al'):
         """
         Residue Object for holding specific residue information
         :param atoms:
@@ -17,7 +17,7 @@ class Residue:
         self.id = seg_id
         self.chain = chain
         self.print_name = None
-        self.elem_col = None
+        self.element = element
         try:
             self.color = residue_colors[name][sys.color_scheme]
         except KeyError:
