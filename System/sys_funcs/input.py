@@ -31,7 +31,7 @@ def fix_sol(sys, residue):
 
         if atom['element'].lower() == 'o':
             # Create a new residue for each oxygen atom
-            oxy_res.append(Residue(sys=residue.sys, atoms=[a], name=atom['residue'],
+            oxy_res.append(Residue(sys=residue.sys, atoms=[a], name='SOL',
                                    sequence=atom['res_seq'], chain=atom['chn']))
         elif atom['element'].lower() == 'h':
             hydrogens.append(atom['num'])
@@ -76,16 +76,16 @@ def fix_sol(sys, residue):
     # Las sort the hydrogens
     if len(hydrogens) == 1:
         h = hydrogens[0]
-        good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=sys.atoms['name'][h],
+        good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name='SOL',
                                    sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
     elif len(hydrogens) == 2:
         h1, h2 = sys.atoms.iloc[hydrogens[0]], sys.atoms.iloc[hydrogens[1]]
         if calc_dist(h1['loc'], h2['loc']) < 3 and h1['name'] != h2['name']:
-            good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=h1['residue'],
+            good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name='SOL',
                                        sequence=h1['res_seq'], chain=h1['chn']))
         else:
             for h in hydrogens:
-                good_resids.append(Residue(sys=residue.sys, atoms=[h], name=sys.atoms['name'][h],
+                good_resids.append(Residue(sys=residue.sys, atoms=[h], name='SOL',
                                            sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
     elif len(hydrogens) == 4:
         # Get the first hydrogen
@@ -94,11 +94,11 @@ def fix_sol(sys, residue):
         for h in hydrogens[1:]:
             if sys.atoms['name'][h][:-1] == h1['name'][:-1] and calc_dist(sys.atoms['loc'][h], h1['loc']) < 3:
                 hydrogens = [_ for _ in hydrogens[1:] if _ != h]
-                good_resids.append(Residue(sys=residue.sys, atoms=[h1['num'], h], name=h1['residue'],
+                good_resids.append(Residue(sys=residue.sys, atoms=[h1['num'], h], name='SOL',
                                            sequence=h1['res_seq'], chain=h1['chn']))
         # Get the first hydrogen
         h1 = sys.atoms.iloc[hydrogens[0]]
-        good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=h1['residue'],
+        good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name='SOL',
                                    sequence=h1['res_seq'], chain=h1['chn']))
 
     return good_resids

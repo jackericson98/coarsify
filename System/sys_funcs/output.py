@@ -58,7 +58,7 @@ def write_pdb(sys):
             res_name = ball.name
             chain = ball.chain.name
             if chain in ['SOL', 'Z', 'X', 'W']:
-                chain = " "
+                chain = "0"
             res_seq = ball.seq
             x, y, z = ball.loc
             occ = ball.mass
