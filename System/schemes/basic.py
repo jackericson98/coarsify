@@ -553,7 +553,7 @@ def coarsify(sys):
     # Set the start time
     start_time = time.perf_counter()
     # Loop through the residues in the system
-    for i, res in enumerate(sys.residues):
+    for i, res in enumerate(sys.residues + sys.sol.residues):
         # Get the residues atoms
         res_atoms = sys.atoms.iloc[res.atoms].to_dict(orient='records')
         # Get the percentage and print it
@@ -661,7 +661,7 @@ def coarsify(sys):
             if len(bb_atoms) > 0:
                 mass = sum([_['mass'] for _ in bb_atoms])
                 bb_loc, bb_rad = make_ball(bb_atoms, sys.scheme, sys.mass_weighted, sys.include_h, sys.therm_cush)
-                sys.balls.append(Ball(loc=bb_loc, rad=bb_rad, element=res.elem_col, residues=[res], atoms=bb_atoms,
+                sys.balls.append(Ball(loc=bb_loc, rad=bb_rad, element=res.element, residues=[res], atoms=bb_atoms,
                                       name=res.name, chain=res.chain, seq=res.seq, residue_subsection='bb', mass=mass))
             if len(sc_atoms) > 0:
                 mass = sum([_['mass'] for _ in sc_atoms])
@@ -674,5 +674,5 @@ def coarsify(sys):
             # Calculate the mass of the ball
             mass = sum([_['mass'] for _ in res_atoms])
             # Create the ball object
-            sys.balls.append(Ball(loc=loc, rad=rad, element=res.elem_col, residues=[res], atoms=res_atoms,
+            sys.balls.append(Ball(loc=loc, rad=rad, element=res.element, residues=[res], atoms=res_atoms,
                                   name=res.name, chain=res.chain, seq=res.seq, mass=mass))
