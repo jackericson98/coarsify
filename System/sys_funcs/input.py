@@ -44,7 +44,7 @@ def fix_sol(sys, residue):
             if dist < min_dist:
                 min_dist = dist
                 closest_res = res
-        if closest_res and min_dist < 1.5:
+        if closest_res and min_dist < 2.5:
             closest_res.atoms.append(h)
             hydrogens.remove(h)
 
@@ -65,7 +65,7 @@ def fix_sol(sys, residue):
             # This block tries to find hydrogens that can be moved to this residue
             for h in hydrogens:
                 dist = calc_dist(sys.atoms['loc'][res.atoms[0]], sys.atoms['loc'][h])
-                if dist < 1.5:  # Assumed maximum bond length for O-H
+                if dist < 2.5:  # Assumed maximum bond length for O-H
                     res.atoms.append(h)
                     hydrogens.remove(h)
                 if len(res.atoms) == 3:
@@ -80,19 +80,32 @@ def fix_sol(sys, residue):
                                    sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
     elif len(hydrogens) == 2:
         h1, h2 = sys.atoms.iloc[hydrogens[0]], sys.atoms.iloc[hydrogens[1]]
-        if calc_dist(h1['loc'], h2['loc']) < 2 and h1['name'] != h2['name']:
+        if calc_dist(h1['loc'], h2['loc']) < 3 and h1['name'] != h2['name']:
             good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=h1['residue'],
                                        sequence=h1['res_seq'], chain=h1['chn']))
         else:
             for h in hydrogens:
-                good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=sys.atoms['name'][h],
+                good_resids.append(Residue(sys=residue.sys, atoms=[h], name=sys.atoms['name'][h],
                                            sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
-    else:
-        for h in hydrogens:
-            good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=sys.atoms['name'][h],
-                                       sequence=sys.atoms['res_seq'][h], chain=sys.atoms['chn'][h]))
+    elif len(hydrogens) == 4:
+        # Get the first hydrogen
+        h1 = sys.atoms.iloc[hydrogens[0]]
+        # Find it's pair
+        for h in hydrogens[1:]:
+            if sys.atoms['name'][h][:-1] == h1['name'][:-1] and calc_dist(sys.atoms['loc'][h], h1['loc']) < 3:
+                hydrogens = [_ for _ in hydrogens[1:] if _ != h]
+                good_resids.append(Residue(sys=residue.sys, atoms=[h1['num'], h], name=h1['residue'],
+                                           sequence=h1['res_seq'], chain=h1['chn']))
+        # Get the first hydrogen
+        h1 = sys.atoms.iloc[hydrogens[0]]
+        good_resids.append(Residue(sys=residue.sys, atoms=hydrogens, name=h1['residue'],
+                                   sequence=h1['res_seq'], chain=h1['chn']))
     # print([(sys.atoms['name'][_], sys.atoms['res_seq'][_], sys.atoms['loc'][_][0]) for _ in hydrogens])
+    for res in good_resids:
 
+        if len(res.atoms) > 3:
+
+            print([(sys.atoms['name'][_], sys.atoms['loc'][_], sys.atoms['element'][_], res.seq) for _ in res.atoms])
     return good_resids
 
 
@@ -218,10 +231,3 @@ def read_pdb(sys):
             adjusted_residues.append(res)
 
     sys.sol.residues = adjusted_residues
-    for res in sys.residues:
-        if res.name == 'ION':
-            res.elem_col = res.atoms[0]['name']
-        elif res.name in res_colors:
-            res.elem_col = 'Al'
-        else:
-            res.elem_col = 'Ti'
