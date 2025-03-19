@@ -93,6 +93,49 @@ def write_pdb(sys):
     os.chdir(start_dir)
 
 
+def write_balls(sys, file_name=None):
+    """
+    Writes a ball.txt file with the pure ball location and radii information along with information about each ball that
+    has been cg'd
+    """
+    # Set up the file name
+    if file_name is None:
+        file_name = sys.name + '.txt'
+    # Open the file
+    with open(sys.dir + '/' + file_name, 'w') as wf:
+        # Write the first line
+        wf.write(f"System: {sys.name}, Info order: Index x y z r # chain res_name res_seq ball_subsection mass element"
+                 f" name\n")
+        # Loop through the balls in the file
+        for i, ball in enumerate(sys.balls):
+            # Skip any sol with way too big of a radius
+            if ball.chain.name in ['SOL', 'Z', 'X', 'W'] and ball.rad > 10:
+                print('\nThe Ball {}, {}, {} (a part of SOL) has a radius of {} and was skipped'
+                      .format(ball.name, ball.index, ball.seq, ball.rad))
+                continue
+            # Set the ball index
+            if ball.index is None:
+                ball.index = i
+            # Make sure the ball index is set correctly
+            ball.index = str(int(ball.index) % 100000)
+            atom_name = ball.element
+            if ball.name == 'W':
+                ball.name = 'SOL'
+            res_name = ball.name
+            chain = ball.chain.name
+            if chain in ['SOL', 'Z', 'X', 'W']:
+                chain = "0"
+            res_seq = ball.seq
+            x, y, z = ball.loc
+            elem = ball.element
+            if len(ball.atoms) == 1:
+                elem = ball.atoms[0]['element']
+                atom_name = ball.atoms[0]['name']
+            # Write the ball information
+            wf.write(f"{ball.index} {x} {y} {z} {ball.rad} # {chain} {res_name} {res_seq} {ball.sub_section} "
+                     f"{ball.mass} {elem} {atom_name}\n")
+
+
 def write_pymol_atoms(sys, set_sol=True, file_name=None):
     start_dir = os.getcwd()
     os.chdir(sys.dir)
@@ -150,11 +193,12 @@ def color_pymol_balls(sys, bb_sc=False):
     os.chdir(start_dir)
 
 
-def set_sys_dir(sys, dir_name=None):
+def set_sys_dir(sys, dir_name=None, root_dir=None):
     """
     Sets the directory for the output data. If the directory exists add 1 to the end number
     :param sys: System to assign the output directory to
     :param dir_name: Name for the directory
+    :param root_dir:
     :return:
     """
 
@@ -169,11 +213,14 @@ def set_sys_dir(sys, dir_name=None):
 
     # If no outer directory was specified use the directory outside the current one
     if dir_name is None:
-        if sys.vpy_dir is not None:
+        if root_dir is not None:
+            dir_name = root_dir + '/' + sys.name
+        elif sys.vpy_dir is not None:
 
             dir_name = sys.vpy_dir + "/Data/user_data/" + sys.name
         else:
             dir_name = os.getcwd() + "/Data/user_data/" + sys.name
+    print(dir_name)
     # Catch for existing directories. Keep trying out directories until one doesn't exist
     i = 0
     while True:

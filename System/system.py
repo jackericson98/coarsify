@@ -4,7 +4,7 @@ import shutil
 import tkinter as tk
 from tkinter import filedialog
 from System.sys_funcs.input import read_pdb
-from System.sys_funcs.output import set_dir, write_pdb, write_pymol_atoms, color_pymol_balls, set_sys_dir
+from System.sys_funcs.output import set_dir, write_pdb, write_pymol_atoms, color_pymol_balls, set_sys_dir, write_balls
 from System.schemes.martini import coarsify_martini
 from System.schemes.basic import coarsify
 from GUI import settings_gui
@@ -74,7 +74,8 @@ class System:
         self.read_pdb()
         self.print_info()
         self.coarsify()
-        self.set_sys_dir()
+        if self.dir is None or not os.path.exists(self.dir):
+            self.set_sys_dir()
         self.output(self.dir)
 
     def get_vals(self, my_vals):
@@ -96,7 +97,7 @@ class System:
         if self.mass_weighted and self.scheme == 'Average Distance':
             mw = '_MW'
         # Add the system name and reset the atoms and data lists
-        name = path.basename(self.base_file)[:-4].capitalize() + '_' + self.scheme + sc_bb + mw
+        name = path.basename(self.base_file)[:-4] + '_' + self.scheme + sc_bb + mw
         # Split and rejoin the name
         self.name = '_'.join(name.split(' '))
 
@@ -109,6 +110,10 @@ class System:
         read_pdb(self)
 
     def run_all_schemes(self, my_vals):
+        if self.dir is not None:
+            rooty_tooty = self.dir
+        else:
+            rooty_tooty = self.vpy_dir + '/Data/user_data/'
         for scheme in ['Encapsulate', 'Average Distance']:
             for sc_bb_val in [True, False]:
                 for mass_weight_val in [True, False]:
@@ -123,7 +128,8 @@ class System:
                     self.read_pdb()
                     self.print_info()
                     self.coarsify()
-                    self.set_sys_dir()
+                    self.set_sys_dir(root_dir=rooty_tooty)
+                    print(self.dir)
                     self.output(self.dir)
 
     def print_info(self):
@@ -151,8 +157,8 @@ class System:
         else:
             coarsify(self)
 
-    def set_sys_dir(self, my_dir=None):
-        set_sys_dir(self, my_dir)
+    def set_sys_dir(self, my_dir=None, root_dir=None):
+        set_sys_dir(self, my_dir, root_dir=root_dir)
 
     def output(self, my_dir=None):
         """
@@ -183,6 +189,8 @@ class System:
         color_pymol_balls(self, self.sc_bb)
         # Copy the original pdb over
         shutil.copy2(self.base_file, self.dir + '/' + path.basename(self.base_file[:-4]) + '_base.pdb')
+        # Create the balls file
+        write_balls(self)
 
     def set_dir(self, dir_name=None):
         """
