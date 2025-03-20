@@ -10,9 +10,68 @@ Thermal cushion, methodology, sc_bb, average distance, include H, input file, ou
 """
 
 
+class RoundedButton(tk.Canvas):
+  def __init__(self, parent, border_radius, padding, color, text='', command=None):
+    tk.Canvas.__init__(self, parent, borderwidth=0,
+                       relief="raised", highlightthickness=0, bg=parent["bg"])
+    self.command = command
+    font_size = 10
+    self.font = font.Font(size=font_size, family='Helvetica')
+    self.id = None
+    height = font_size + (1 * padding)
+    width = self.font.measure(text)+(1*padding)
+
+    width = width if width >= 80 else 80
+
+    if border_radius > 0.5*width:
+      print("Error: border_radius is greater than width.")
+      return None
+
+    if border_radius > 0.5*height:
+      print("Error: border_radius is greater than height.")
+      return None
+
+    rad = 2*border_radius
+
+    def shape():
+      self.create_arc((0, rad, rad, 0),
+                      start=90, extent=90, fill=color, outline=color)
+      self.create_arc((width-rad, 0, width,
+                        rad), start=0, extent=90, fill=color, outline=color)
+      self.create_arc((width, height-rad, width-rad,
+                        height), start=270, extent=90, fill=color, outline=color)
+      self.create_arc((0, height-rad, rad, height), start=180, extent=90, fill=color, outline=color)
+      return self.create_polygon((0, height-border_radius, 0, border_radius, border_radius, 0, width-border_radius, 0, width,
+                           border_radius, width, height-border_radius, width-border_radius, height, border_radius, height),
+                                 fill=color, outline=color)
+
+    id = shape()
+    (x0, y0, x1, y1) = self.bbox("all")
+    width = (x1-x0)
+    height = (y1-y0)
+    self.configure(width=width, height=height)
+    self.create_text(width/2, height/2,text=text, fill='black', font= self.font)
+    self.bind("<ButtonPress-1>", self._on_press)
+    self.bind("<ButtonRelease-1>", self._on_release)
+
+  def _on_press(self, event):
+      self.configure(relief="sunken")
+
+  def _on_release(self, event):
+      self.configure(relief="raised")
+      if self.command is not None:
+          self.command()
+
+
 def settings_gui():
     # Function to collect values and print dictionary
     global settings
+
+    def truncate_path(path, num_chars=15):
+        """Truncates a path to show only first and last num_chars characters with ... in between"""
+        if len(path) <= num_chars * 2 + 3:  # If path is short enough, show full path
+            return path
+        return f"{path[:num_chars]}...{path[-num_chars:]}"
 
     def apply_values():
         global settings
@@ -55,6 +114,7 @@ def settings_gui():
         
         # Help content
         help_text = {
+            "Coarsify": "Coarsify is a tool for coarse-graining protein structures. It is designed to be used in conjunction with the molecular visualization tool, PyMOL. ",
             "File Selection": "Choose the input PDB file that you want to coarse-grain. This should be a properly formatted protein structure file.",
             
             "CG Method": """Choose the coarse-graining method to use:
@@ -116,15 +176,19 @@ def settings_gui():
         choose_input_file_window.withdraw()
         choose_input_file_window.wm_attributes('-topmost', 1)
         input_file = filedialog.askopenfilename()
-        input_file_var.set(input_file)
+        if input_file:  # Only update if a file was selected
+            input_file_display.set(truncate_path(input_file))
+            input_file_var.set(input_file)  # Store full path
         choose_input_file_window.destroy()
 
     def choose_output_folder():
         choose_output_folder_window = tk.Tk()
         choose_output_folder_window.withdraw()
         choose_output_folder_window.wm_attributes('-topmost', 1)
-        input_file = filedialog.askdirectory()
-        output_folder_var.set(input_file)
+        output_folder = filedialog.askdirectory()
+        if output_folder:  # Only update if a folder was selected
+            output_folder_display.set(truncate_path(output_folder))
+            output_folder_var.set(output_folder)  # Store full path
         choose_output_folder_window.destroy()
 
     # Main window
@@ -140,6 +204,13 @@ def settings_gui():
     style.configure('TButton', padding=6, relief="flat", background="#2196F3")
     style.configure('TEntry', padding=6)
     style.configure('TCombobox', padding=6)
+    # Configure help button style
+    style.configure('Help.TButton', 
+                   padding=2,
+                   relief="flat",
+                   background="#f0f0f0",
+                   borderwidth=1,
+                   font=('Arial', 8))
     
     # Create main frame
     main_frame = ttk.Frame(root, padding="20")
@@ -155,31 +226,39 @@ def settings_gui():
     # Create title with custom font
     title_font = tkfont.Font(family="Arial", size=36, weight="bold")
     title_label = tk.Label(title_frame, text="Coarsify", font=title_font, fg="#2196F3", bg='#f0f0f0')
-    title_label.grid(row=0, column=1, pady=20)
+    title_label.grid(row=0, column=1, pady=(20, 0))
     
-    # Help button
-    help_button = ttk.Button(title_frame, text="?", width=3, command=show_help)
-    help_button.grid(row=0, column=2, padx=(10, 0), sticky='ne')
+    # Create subtitle
+    subtitle_font = tkfont.Font(family="Arial", size=14)
+    subtitle_label = tk.Label(title_frame, text="A molecular coarse graining tool", 
+                            font=subtitle_font, fg="#666666", bg='#f0f0f0')
+    subtitle_label.grid(row=1, column=1, pady=(0, 20))
 
     # Content Frame
     content_frame = ttk.Frame(main_frame, padding="10")
     content_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E))
     
     # Initialize variables
-    input_file_var = tk.StringVar(value='Choose File')
+    input_file_var = tk.StringVar(value='')  # Stores full path
+    input_file_display = tk.StringVar(value='Choose File')  # Displays truncated path
     cg_method_var = tk.StringVar(value='Encapsulate')
     thermal_cushion_var = tk.StringVar(value='0.0')
     sc_bb_var = tk.BooleanVar(value=False)
     include_h_var = tk.BooleanVar(value=True)
     mass_weighted_var = tk.BooleanVar(value=True)
-    output_folder_var = tk.StringVar(value='Choose Output Folder')
+    output_folder_var = tk.StringVar(value='')  # Stores full path
+    output_folder_display = tk.StringVar(value='Choose Output Folder')  # Displays truncated path
 
     # File Selection Frame
     file_frame = ttk.LabelFrame(content_frame, text="File Selection", padding="10")
     file_frame.grid(row=0, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
     
-    ttk.Label(file_frame, textvariable=input_file_var).grid(row=0, column=0, columnspan=2, sticky=tk.W, pady=5)
-    ttk.Button(file_frame, text='Browse', command=choose_input_file).grid(row=0, column=2, padx=5)
+    # Configure column weights to push button to the right
+    file_frame.grid_columnconfigure(0, weight=1)  # Make the label column expand
+    file_frame.grid_columnconfigure(1, weight=0)  # Keep button column fixed
+    
+    ttk.Label(file_frame, textvariable=input_file_display).grid(row=0, column=0, sticky=tk.W, pady=5)
+    ttk.Button(file_frame, text='Browse', command=choose_input_file).grid(row=0, column=1, padx=5, sticky=tk.E)
 
     # Settings Frame
     settings_frame = ttk.LabelFrame(content_frame, text="Settings", padding="10")
@@ -209,15 +288,58 @@ def settings_gui():
     output_frame = ttk.LabelFrame(content_frame, text="Output", padding="10")
     output_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
 
-    ttk.Label(output_frame, textvariable=output_folder_var).grid(row=0, column=0, columnspan=2, sticky=tk.W, pady=5)
-    ttk.Button(output_frame, text='Browse', command=choose_output_folder).grid(row=0, column=2, padx=5)
+    # Configure column weights to push button to the right
+    output_frame.grid_columnconfigure(0, weight=1)  # Make the label column expand
+    output_frame.grid_columnconfigure(1, weight=0)  # Keep button column fixed
+    
+    ttk.Label(output_frame, textvariable=output_folder_display).grid(row=0, column=0, sticky=tk.W, pady=5)
+    ttk.Button(output_frame, text='Browse', command=choose_output_folder).grid(row=0, column=1, padx=5, sticky=tk.E)
 
     # Buttons Frame
     button_frame = ttk.Frame(content_frame)
     button_frame.grid(row=3, column=0, columnspan=3, pady=20)
+    button_frame.grid_columnconfigure(1, weight=1)  # Center column for main buttons
+    
+    # Left frame for help button
+    left_button_frame = ttk.Frame(button_frame)
+    left_button_frame.grid(row=0, column=0, padx=5, sticky=tk.W)
+    
+    # Center frame for main buttons
+    center_button_frame = ttk.Frame(button_frame)
+    center_button_frame.grid(row=0, column=1)
+    
 
-    ttk.Button(button_frame, text="Apply", command=apply_values, style='TButton').pack(side=tk.RIGHT, padx=5)
-    ttk.Button(button_frame, text="Cancel", command=cancel, style='TButton').pack(side=tk.RIGHT, padx=5)
+    
+    # Main buttons in center
+    ttk.Button(center_button_frame, text="Apply", command=apply_values, style='TButton').pack(side=tk.LEFT, padx=5)
+    ttk.Button(center_button_frame, text="Cancel", command=cancel, style='TButton').pack(side=tk.LEFT, padx=5)
+
+    # Help button (small and circular)
+    help_button = tk.Button(left_button_frame, 
+                                text="?",
+                                width=2,
+                                height=1,
+                                font=('Arial', 10),
+                                fg='#666666',
+                                bg='#f0f0f0',
+                                relief='solid',
+                                borderwidth=1,
+                                command=show_help)
+    help_button['border'] = "0"
+    help_button.pack(side=tk.RIGHT)
+    
+    # Make the help button circular
+    help_button.bind('<Configure>', lambda e: help_button.configure(width=2 if e.width > e.height else 1))
+    
+    # Hover effects
+    def on_enter(e):
+        help_button['bg'] = '#e6e6e6'
+    
+    def on_leave(e):
+        help_button['bg'] = '#f0f0f0'
+    
+    help_button.bind('<Enter>', on_enter)
+    help_button.bind('<Leave>', on_leave)
 
     # Center the window on the screen
     root.update_idletasks()
