@@ -3,11 +3,11 @@ from os import path
 import shutil
 import tkinter as tk
 from tkinter import filedialog
-from System.sys_funcs.input import read_pdb
-from System.sys_funcs.output import set_dir, write_pdb, write_pymol_atoms, color_pymol_balls, set_sys_dir, write_balls
+from coarsify.src.input.input import read_pdb
+from coarsify.src.output.output import set_dir, write_pdb, write_pymol_atoms, color_pymol_balls, set_sys_dir, write_balls
 from System.schemes.martini import coarsify_martini
 from System.schemes.basic import coarsify
-from GUI import settings_gui
+from coarsify.src.gui.GUI import settings_gui
 
 
 class System:
@@ -36,7 +36,7 @@ class System:
         self.segments = segments
         self.sol = None                     # Solution            :   List of solution molecules (lists of atoms)
 
-        self.radii = element_radii               # Radii               :   List of atomic radii
+        self.radii = element_radii          # Radii               :   List of atomic radii
         self.masses = my_masses
         self.special_radii = special_radii  # Special Radii       :   List of special radius situations. Helpful for gro
         self.aminos = amino_acids
@@ -303,4 +303,3 @@ nucleic_pphte = ['P', 'O1P', 'O2P', 'OP1', 'OP2', 'PA', 'PB', 'O1A', 'O1B', 'O2A
 
 bb_sc_colors = {**{_: 'r' for _ in amino_bbs}, **{_: 'y' for _ in amino_scs}, **{_: 'blue' for _ in nucleic_nbase},
                 **{_: 'purple' for _ in nucleic_sugr}, **{_: 'maroon' for _ in nucleic_pphte}}
-

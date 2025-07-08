@@ -1,6 +1,6 @@
 import numpy as np
 
-from System.sys_funcs.calcs import calc_dist
+from coarsify.src.calcs.calcs import calc_dist
 from numpy import array, dot, isreal, linalg, roots
 from numba import jit
 

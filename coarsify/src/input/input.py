@@ -1,12 +1,12 @@
 from os import path
-from System.sys_funcs.calcs import get_radius
+from coarsify.src.calcs.calcs import get_radius
 from System.sys_objs.chain import Sol, Chain
 from System.sys_objs.atom import make_atom
 from System.sys_objs.residue import Residue
 import numpy as np
 from pandas import DataFrame
-from System.sys_funcs.calcs import calc_dist
-from chemistry_interpreter import my_masses
+from coarsify.src.calcs.calcs import calc_dist
+from coarsify.src.tools.chemistry_interpreter import my_masses
 
 
 def fix_sol(sys, residue):

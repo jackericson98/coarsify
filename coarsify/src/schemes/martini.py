@@ -1,4 +1,4 @@
-from System.cg_designations import *
+from coarsify.src.tools.cg_designations import *
 from System.sys_objs.ball import Ball
 
 

@@ -1,4 +1,4 @@
-from System.sys_funcs.calcs import pdb_line
+from coarsify.src.calcs.calcs import pdb_line
 import os
 
 

@@ -1,5 +1,5 @@
 import numpy as np
-from radii import element_radii, special_radii
+from coarsify.src.tools.radii import element_radii, special_radii
 
 
 def get_radius(atom, my_radii=None):
