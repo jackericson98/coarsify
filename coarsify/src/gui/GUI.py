@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+"""
+GUI entry point for the coarsify graphical user interface.
+"""
+
+import sys
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -16,7 +22,7 @@ class RoundedButton(tk.Canvas):
                        relief="raised", highlightthickness=0, bg=parent["bg"])
     self.command = command
     font_size = 10
-    self.font = font.Font(size=font_size, family='Helvetica')
+    self.font = tkfont.Font(size=font_size, family='Helvetica')
     self.id = None
     height = font_size + (1 * padding)
     width = self.font.measure(text)+(1*padding)
@@ -193,6 +199,7 @@ def settings_gui():
 
     # Main window
     root = tk.Tk()
+    root.wm_attributes('-topmost', 1)
     root.title("Coarsify")
     root.configure(bg='#f0f0f0')
     
@@ -307,9 +314,7 @@ def settings_gui():
     # Center frame for main buttons
     center_button_frame = ttk.Frame(button_frame)
     center_button_frame.grid(row=0, column=1)
-    
 
-    
     # Main buttons in center
     ttk.Button(center_button_frame, text="Apply", command=apply_values, style='TButton').pack(side=tk.LEFT, padx=5)
     ttk.Button(center_button_frame, text="Cancel", command=cancel, style='TButton').pack(side=tk.LEFT, padx=5)
