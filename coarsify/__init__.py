@@ -7,17 +7,10 @@ dynamics simulations and structural analysis.
 """
 
 from .src.version import __version__
+from .src.system.system import System as run
 
-# Import main classes for easy access
-try:
-    from .src.system.system import System
-    from .src.gui.GUI import settings_gui
-except ImportError:
-    # Handle case where dependencies aren't available
-    pass
 
 __all__ = [
-    "System",
-    "settings_gui",
+    "run",
     "__version__",
 ]
