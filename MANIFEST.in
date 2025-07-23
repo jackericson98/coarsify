@@ -1,0 +1,27 @@
+include README.md
+include LICENSE
+include requirements.txt
+include pyproject.toml
+include setup.py
+
+recursive-include coarsify *.py
+recursive-include coarsify *.txt
+recursive-include coarsify *.md
+recursive-include coarsify *.toml
+recursive-include coarsify *.json
+recursive-include coarsify *.yaml
+recursive-include coarsify *.yml
+recursive-include coarsify *.pdb
+recursive-include coarsify *.cif
+recursive-include coarsify *.mol
+recursive-include coarsify *.gro
+
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude .git*
+global-exclude .DS_Store
+global-exclude .idea
+global-exclude *.swp
+global-exclude *.swo
+global-exclude *~ 

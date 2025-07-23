@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coarsify"
+version = "1.0.0"
+description = "A Python tool for coarse-graining molecular structures"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "John Ericson", email = "jackericson98@gmail.com"}
+]
+maintainers = [
+    {name = "John Ericson", email = "jackericson98@gmail.com"}
+]
+keywords = ["molecular dynamics", "coarse-graining", "protein structure", "chemistry", "physics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "black>=22.0",
+    "flake8>=4.0",
+    "mypy>=0.950",
+]
+docs = [
+    "sphinx>=4.0",
+    "sphinx-rtd-theme>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/jackericson98/coarsify"
+Documentation = "https://github.com/jackericson98/coarsify#readme"
+Repository = "https://github.com/jackericson98/coarsify"
+"Bug Tracker" = "https://github.com/jackericson98/coarsify/issues"
+
+[project.scripts]
+coarsify = "coarsify.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "coarsify"}
+
+[tool.setuptools.packages.find]
+where = ["coarsify"]
+
+[tool.setuptools.package-data]
+coarsify = ["data/*", "src/data/*"]
+
+# [tool.setuptools_scm]
+# write_to = "coarsify/src/version.py" 
