@@ -5,9 +5,10 @@ import tkinter as tk
 from tkinter import filedialog
 from coarsify.src.input.input import read_pdb
 from coarsify.src.output.output import set_dir, write_pdb, write_pymol_atoms, color_pymol_balls, set_sys_dir, write_balls
-from System.schemes.martini import coarsify_martini
-from System.schemes.basic import coarsify
+from coarsify.src.schemes.martini import coarsify_martini
+from coarsify.src.schemes.basic import coarsify
 from coarsify.src.gui.GUI import settings_gui
+from coarsify.src.tools import *
 
 
 class System:
@@ -15,7 +16,7 @@ class System:
                  chains=None, segments=None, output=True, scheme=None, thermal_cushion=0.0, include_h=True,
                  mass_weighted=True, sc_bb=None, color_scheme='Shapely', all_methods=False):
         """
-        Class used to import files of all types and return a System
+        Class used to import files of all types and return a system
         :param file: Base system file address
         :param atoms: List holding the atom objects
         :param output_directory: Directory for export files to be output to
@@ -104,7 +105,7 @@ class System:
     def read_pdb(self):
         """
         Interprets pdb data into a system of atom objects
-        :param self: System to add the pdb information to
+        :param self: system to add the pdb information to
         :return: list of tuples of locations and radii
         """
         read_pdb(self)
@@ -191,115 +192,13 @@ class System:
         shutil.copy2(self.base_file, self.dir + '/' + path.basename(self.base_file[:-4]) + '_base.pdb')
         # Create the balls file
         write_balls(self)
+        # Print out the directory that the files have been exported to
+        print("\nFiles exported to {}".format(self.dir))
 
     def set_dir(self, dir_name=None):
         """
         Sets the directory for the output data. If the directory exists add 1 to the end number
-        :param self: System to assign the output directory to
+        :param self: system to assign the output directory to
         :param dir_name: Name for the directory
         """
         set_dir(self, dir_name=dir_name)
-
-
-##################################################### Atomic Radii #####################################################
-
-
-my_masses = {'h': 1.008, 'he': 4.003, 'li': 6.941, 'be': 9.012, 'b': 10.811, 'c': 12.011, 'n': 14.007, 'o': 15.999,
-             'f': 18.998,'ne': 20.180, 'na': 22.990, 'mg': 24.305, 'al': 26.982, 'si': 28.086, 'p': 30.974,
-             's': 32.066, 'cl': 35.453, 'ar': 39.948, 'k': 39.098, 'ca': 40.078, 'ga': 69.723, 'ge': 72.631,
-             'as': 74.922, 'se': 78.971, 'br': 79.904, 'kr': 83.798, 'rb': 85.468, 'sr': 87.62, 'in': 114.818,
-             'sn': 118.711, 'sb': 121.760, 'te': 27.6, 'i': 126.904, 'xe': 131.293, 'cs': 132.905, 'ba': 137.328,
-             'tl': 204.383, 'pb': 207.2, 'bi': 208.980, 'po': 208.982, 'at': 209.987, 'rn': 222.018, 'fr': 223.020,
-             'ra': 226.025, '': 1.80, 'W': 4.1}
-
-element_radii = {
-    'H': 1.30, 'HE': 1.40, 'LI': 0.76, 'BE': 0.45, 'B': 1.92, 'C': 1.80, 'N': 1.60, 'O': 1.50, 'F': 1.33,
-    'NE': 1.54, 'NA': 1.02, 'MG': 0.72, 'AL': 0.60, 'SI': 2.10, 'P': 1.90, 'S': 1.90, 'CL': 1.81, 'AR': 1.88,
-    'K': 1.38, 'CA': 1.00, 'GA': 0.62, 'GE': 0.73, 'AS': 0.58, 'SE': 1.90, 'BR': 1.83, 'KR': 2.02, 'RB': 1.52,
-    'SR': 1.18, 'IN': 1.93, 'SN': 2.17, 'SB': 2.06, 'TE': 2.06, 'I': 2.20, 'XE': 2.16, 'CS': 1.67, 'BA': 1.35,
-    'TL': 1.96, 'PB': 2.02, 'BI': 2.07, 'PO': 1.97, 'AT': 2.02, 'RN': 2.20, 'FR': 3.48, 'RA': 2.83, 'ZN': 1.39
-}
-
-special_radii = {
-    'ALA': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.92, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HB3': 1.3, 'N': 1.6, 'O': 1.5, 'OC1': 1.5, 'OC2': 1.5
-    },
-    'ARG': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD': 1.88, 'CG': 1.92, 'CZ': 1.8, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HB3': 1.3, 'HD1': 1.3, 'HD2': 1.3, 'HD3': 1.3, 'HE': 1.3, 'HG1': 1.3, 'HG2': 1.3, 'HH11': 1.3, 'HH12': 1.3, 'HH21': 1.3, 'HH22': 1.3, 'N': 1.6, 'NE': 1.62, 'NH1': 1.62, 'NH2': 1.67, 'O': 1.5
-    },
-    'ASN': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CG': 1.81, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HD21': 1.3, 'HD22': 1.3, 'N': 1.6, 'ND2': 1.62, 'O': 1.5, 'OD1': 1.52
-    },
-    'ASP': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CG': 1.76, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'N': 1.6, 'O': 1.5, 'OD1': 1.49, 'OD2': 1.49
-    },
-    'CYS': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HG': 1.3, 'N': 1.6, 'O': 1.5, 'S': 1.9, 'SG': 1.9
-    },
-    'GLN': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD': 1.81, 'CG': 1.8, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HE21': 1.62, 'HE22': 1.62, 'HG1': 1.3, 'HG2': 1.3, 'N': 1.6, 'NE2': 1.62, 'O': 1.5, 'OE1': 1.52
-    },
-    'GLU': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD': 1.76, 'CG': 1.88, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HG1': 1.3, 'HG2': 1.3, 'N': 1.6, 'O': 1.5, 'OE1': 1.49, 'OE2': 1.49
-    },
-    'GLY': {
-        'C': 1.8, 'CA': 1.8, 'H': 1.3, 'HA1': 1.3, 'HA2': 1.3, 'N': 1.6, 'O': 1.5, 'OC1': 1.5, 'OC2': 1.5
-    },
-    'HIS': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD': 1.74, 'CE': 1.74, 'CD2': 1.74, 'CE1': 1.74, 'CG': 1.8, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HD2': 1.3, 'HE1': 1.3, 'HE2': 1.3, 'N': 1.6, 'ND1': 1.6, 'ND2': 1.6, 'NE2': 1.6, 'O': 1.5
-    },
-    'ILE': {
-        'C': 1.8, 'CA': 1.8, 'CB': 2.01, 'CD': 1.92, 'CD1': 1.92, 'CG1': 1.92, 'CG2': 1.92, 'H': 1.3, 'HA': 1.3, 'HB': 1.3, 'HD1': 1.3, 'HD2': 1.3, 'HD3': 1.3, 'HD11': 1.3, 'HD12': 1.3, 'HD13': 1.3, 'HG12': 1.3, 'HG13': 1.3, 'HG21': 1.3, 'HG22': 1.3, 'HG23': 1.3, 'N': 1.6, 'O': 1.5
-    },
-    'LEU': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD1': 1.92, 'CD2': 1.92, 'CG': 2.01, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HD11': 1.3, 'HD12': 1.3, 'HD13': 1.3, 'HD21': 1.3, 'HD22': 1.3, 'HD23': 1.3, 'HG': 1.3, 'N': 1.6, 'O': 1.5
-    },
-    'LYS': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD': 1.92, 'CE': 1.88, 'CG': 1.92, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HD1': 1.3, 'HD2': 1.3, 'HE1': 1.3, 'HE2': 1.3, 'HG1': 1.3, 'HG2': 1.3, 'HZ1': 1.67, 'HZ2': 1.67, 'HZ3': 1.67, 'N': 1.6, 'NZ': 1.67, 'O': 1.5
-    },
-    'MET': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CE': 1.8, 'CG': 1.92, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HE1': 1.3, 'HE2': 1.3, 'HE3': 1.3, 'HG1': 1.3, 'HG2': 1.3, 'N': 1.6, 'O': 1.5, 'SD': 1.94, 'S': 1.94
-    },
-    'PHE': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD1': 1.82, 'CD2': 1.82, 'CD': 1.82, 'CE1': 1.82, 'CE2': 1.82, 'CG': 1.74, 'CZ': 1.82, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HD1': 1.3, 'HD2': 1.3, 'HE1': 1.3, 'HE2': 1.3, 'HZ': 1.3, 'N': 1.6, 'O': 1.5
-    },
-    'PRO': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD': 1.92, 'CG': 1.92, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HD1': 1.3, 'HD2': 1.3, 'HG1': 1.3, 'HG2': 1.3, 'N': 1.6, 'O': 1.5
-    },
-    'SER': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'H1': 1.3, 'H2': 1.3, 'H3': 1.3, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HG': 1.54, 'N': 1.6, 'O': 1.5, 'OG': 1.54
-    },
-    'THR': {
-        'C': 1.8, 'CA': 1.8, 'CB': 2.01, 'CG2': 1.92, 'H': 1.3, 'HA': 1.3, 'HB': 1.3, 'HG1': 1.54, 'HG21': 1.3, 'HG22': 1.3, 'HG23': 1.3, 'N': 1.6, 'O': 1.5, 'OG1': 1.54
-    },
-    'TRP': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD1': 1.82, 'CD2': 1.82, 'CD': 1.82, 'CE': 1.82, 'CE2': 1.74, 'CE3': 1.74, 'CG': 1.74, 'CH': 1.82, 'CH2': 1.82, 'CZ': 1.82, 'CZ1': 1.82, 'CZ2': 1.82, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HD1': 1.3, 'HE1': 1.62, 'HE3': 1.3, 'HZ1': 1.3, 'HZ2': 1.3, 'HH2': 1.3, 'N': 1.6, 'NE1': 1.66, 'O': 1.5
-    },
-    'TYR': {
-        'C': 1.8, 'CA': 1.8, 'CB': 1.91, 'CD': 1.82, 'CD1': 1.82, 'CD2': 1.82, 'CE': 1.82, 'CE1': 1.82, 'CE2': 1.82, 'CG': 1.74, 'CZ': 1.8, 'H': 1.3, 'HA': 1.3, 'HB1': 1.3, 'HB2': 1.3, 'HD1': 1.3, 'HD2': 1.3, 'HE1': 1.3, 'HE2': 1.3, 'HH': 1.3, 'N': 1.6, 'O': 1.5, 'OH': 1.54
-    },
-    'VAL': {
-        'C': 1.8, 'CA': 1.8, 'CB': 2.01, 'CG1': 1.92, 'CG2': 1.92, 'H': 1.3, 'HA': 1.3, 'HB': 1.3, 'HG11': 1.3, 'HG12': 1.3, 'HG13': 1.3, 'HG21': 1.3, 'HG22': 1.3, 'HG23': 1.3, 'N': 1.6, 'O': 1.5
-    }
-}
-
-amino_acids = {'ALA', 'ARB', 'ASN', 'ASP', 'CYS', 'GLN', 'GLU', 'HIS', 'ILE', 'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER',
-               'THR', 'TRP', 'TYR', 'VAL', 'GLY', 'ARG'}
-amino_bbs = ['CA', 'HA', 'HA1', 'HA2', 'N', 'HN', 'H', 'C', 'O', 'OC1', 'OC2', 'OT1', 'OT2', 'H1', 'H2', 'H3']
-amino_scs = ['CB', 'HB', 'HB1', 'HB2', 'HB3',
-             'SD', 'CD', 'CD1', 'CD2', 'ND1', 'ND2', 'OD1', 'OD2', 'HD1', 'HD2', 'HD3', 'HD11', 'HD12', 'HD13', 'HD21', 'HD22', 'HD23'
-             , 'CE', 'CE1', 'CE2', 'CE3', 'OE1', 'OE2', 'NE', 'NE1', 'NE2', 'HE', 'HE1', 'HE2', 'HE3', 'HE21', 'HE22',
-             'CG', 'CG1', 'CG2', 'OG', 'SG', 'OG1', 'HG', 'HG1', 'HG2', 'HG11', 'HG12', 'HG13', 'HG21', 'HG22', 'HG23',
-             'CH2', 'NH1', 'OH', 'HH', 'HH1', 'HH2', 'HH11', 'HH12', 'NH2', 'HH21', 'HH22',
-             'NZ', 'CZ', 'CZ1', 'CZ2', 'CZ3', 'NZ', 'HZ', 'HZ1', 'HZ2', 'HZ3']
-
-nucleic_acids = {'DT', 'DA', 'DG', 'DC', 'DU', 'U', 'G', 'A', 'T', 'C', 'GDP', 'OMC'}
-
-nucleic_nbase = ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'C2', 'C4', 'C5', 'C6', 'C7', 'C8', 'O2', 'O4',
-                 'O6', 'H2', 'H21', 'H22', 'H3', 'H4', 'H41', 'H42', 'H5', 'H6', 'H61', 'H62', 'H8', 'H71', 'H72', 'H73']
-nucleic_sugr = ['O3\'', 'O5\'', 'C5\'', 'C4\'', 'O4\'', 'C3\'', 'C2\'', 'C1\'', 'O2\'', 'CM2', 'H1\'', 'H2\'', 'H2\'\'',
-                'H3\'', 'H4\'', 'H5\'', 'H5\'\'', 'H3T', 'H5T', 'H2\'1', 'H2\'2', 'H5\'1', 'H5\'2']
-nucleic_pphte = ['P', 'O1P', 'O2P', 'OP1', 'OP2', 'PA', 'PB', 'O1A', 'O1B', 'O2A', 'O2B', 'O3A', 'O3B']
-
-bb_sc_colors = {**{_: 'r' for _ in amino_bbs}, **{_: 'y' for _ in amino_scs}, **{_: 'blue' for _ in nucleic_nbase},
-                **{_: 'purple' for _ in nucleic_sugr}, **{_: 'maroon' for _ in nucleic_pphte}}
