@@ -65,7 +65,8 @@ class System:
         self.print_actions = print_actions  # Print actions Bool  :   Tells the system to print or not
 
         # Run the processes
-        my_vals = settings_gui()
+        if self.base_file is None:
+            my_vals = settings_gui()
         if my_vals['cg method'] == 'All Schemes':
             self.run_all_schemes(my_vals)
             return
