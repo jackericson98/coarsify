@@ -263,3 +263,23 @@ my_masses = {'h': 1.008, 'he': 4.003, 'li': 6.941, 'be': 9.012, 'b': 10.811, 'c'
              'tl': 204.383, 'pb': 207.2, 'bi': 208.980, 'po': 208.982, 'at': 209.987, 'rn': 222.018, 'fr': 223.020,
              'ra': 226.025, '': 1.80, 'W': 4.1}
 
+amino_acids = {'ALA', 'ARB', 'ASN', 'ASP', 'CYS', 'GLN', 'GLU', 'HIS', 'ILE', 'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER',
+               'THR', 'TRP', 'TYR', 'VAL', 'GLY', 'ARG'}
+amino_bbs = ['CA', 'HA', 'HA1', 'HA2', 'N', 'HN', 'H', 'C', 'O', 'OC1', 'OC2', 'OT1', 'OT2', 'H1', 'H2', 'H3']
+amino_scs = ['CB', 'HB', 'HB1', 'HB2', 'HB3',
+             'SD', 'CD', 'CD1', 'CD2', 'ND1', 'ND2', 'OD1', 'OD2', 'HD1', 'HD2', 'HD3', 'HD11', 'HD12', 'HD13', 'HD21', 'HD22', 'HD23'
+             , 'CE', 'CE1', 'CE2', 'CE3', 'OE1', 'OE2', 'NE', 'NE1', 'NE2', 'HE', 'HE1', 'HE2', 'HE3', 'HE21', 'HE22',
+             'CG', 'CG1', 'CG2', 'OG', 'SG', 'OG1', 'HG', 'HG1', 'HG2', 'HG11', 'HG12', 'HG13', 'HG21', 'HG22', 'HG23',
+             'CH2', 'NH1', 'OH', 'HH', 'HH1', 'HH2', 'HH11', 'HH12', 'NH2', 'HH21', 'HH22',
+             'NZ', 'CZ', 'CZ1', 'CZ2', 'CZ3', 'NZ', 'HZ', 'HZ1', 'HZ2', 'HZ3']
+
+nucleic_acids = {'DT', 'DA', 'DG', 'DC', 'DU', 'U', 'G', 'A', 'T', 'C', 'GDP', 'OMC'}
+
+nucleic_nbase = ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'C2', 'C4', 'C5', 'C6', 'C7', 'C8', 'O2', 'O4',
+                 'O6', 'H2', 'H21', 'H22', 'H3', 'H4', 'H41', 'H42', 'H5', 'H6', 'H61', 'H62', 'H8', 'H71', 'H72', 'H73']
+nucleic_sugr = ['O3\'', 'O5\'', 'C5\'', 'C4\'', 'O4\'', 'C3\'', 'C2\'', 'C1\'', 'O2\'', 'CM2', 'H1\'', 'H2\'', 'H2\'\'',
+                'H3\'', 'H4\'', 'H5\'', 'H5\'\'', 'H3T', 'H5T', 'H2\'1', 'H2\'2', 'H5\'1', 'H5\'2']
+nucleic_pphte = ['P', 'O1P', 'O2P', 'OP1', 'OP2', 'PA', 'PB', 'O1A', 'O1B', 'O2A', 'O2B', 'O3A', 'O3B']
+
+bb_sc_colors = {**{_: 'r' for _ in amino_bbs}, **{_: 'y' for _ in amino_scs}, **{_: 'blue' for _ in nucleic_nbase},
+                **{_: 'purple' for _ in nucleic_sugr}, **{_: 'maroon' for _ in nucleic_pphte}}
