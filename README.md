@@ -18,18 +18,30 @@ A Python tool for coarse-graining molecular structures from various file formats
 
 ## Installation
 
+### From PyPI (Recommended)
+
+```bash
+pip install coarsify
+```
+
+### From Source
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/coarsify.git
+   cd coarsify
+   ```
+
+2. Install in development mode:
+   ```bash
+   pip install -e .
+   ```
+
 ### Prerequisites
 - Python 3.7 or higher
-- Required Python packages (see `requirements.txt`):
-  - numpy ~= 1.24.4
-  - pandas ~= 2.0.3
-
-### Setup
-1. Clone or download this repository
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+- Required Python packages (automatically installed):
+  - numpy >= 1.24.0
+  - pandas >= 2.0.0
 
 ## Usage
 
@@ -38,7 +50,12 @@ A Python tool for coarse-graining molecular structures from various file formats
 The GUI provides an intuitive interface for all coarse-graining operations:
 
 ```bash
-python GUI.py
+coarsify-gui
+```
+
+Or if installed from source:
+```bash
+python -m coarsify.src.gui.gui
 ```
 
 **GUI Features:**
@@ -53,7 +70,12 @@ python GUI.py
 For batch processing or scripting:
 
 ```bash
-python coarsify.py
+coarsify
+```
+
+Or if installed from source:
+```bash
+python -m coarsify
 ```
 
 **CLI Options:**
@@ -127,23 +149,6 @@ The tool automatically generates PyMOL scripts for easy visualization:
 
 This tool was originally developed to work in conjunction with [Vorpy](https://github.com/your-username/vorpy) for Voronoi diagram analysis of molecular structures. The coarse-grained representations can be used as input for Voronoi tessellation analysis.
 
-## File Structure
-
-```
-coarsify/
-├── GUI.py                 # Main GUI application
-├── coarsify.py           # CLI interface
-├── System/               # Core system modules
-│   ├── system.py         # Main system class
-│   ├── schemes/          # Coarse-graining algorithms
-│   ├── sys_funcs/        # Utility functions
-│   └── sys_objs/         # Object definitions
-├── Data/                 # Output data directory
-│   ├── test_data/        # Test structures
-│   └── user_data/        # User-generated outputs
-└── requirements.txt      # Python dependencies
-```
-
 ## Contributing
 
 This tool is actively developed for molecular dynamics research. Contributions are welcome, particularly for:
@@ -154,12 +159,21 @@ This tool is actively developed for molecular dynamics research. Contributions a
 
 ## License
 
-[Add your license information here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
 ## Citation
 
 If you use this tool in your research, please cite:
-[Add citation information when available]
+
+```bibtex
+@software{coarsify2024,
+  author = {John Ericson},
+  title = {Coarsify: A Python package for coarse graining molecular structures},
+  year = {2024},
+  publisher = {GitHub},
+  url = {https://github.com/jackericson98/coarsify}
+}
+```
 
 ## Contact
 
