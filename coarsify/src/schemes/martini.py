@@ -1,5 +1,5 @@
 from coarsify.src.tools.cg_designations import *
-from System.sys_objs.ball import Ball
+from coarsify.src.objects.ball import Ball
 
 
 def coarsify_martini(sys):

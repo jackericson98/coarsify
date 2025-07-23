@@ -1,5 +1,5 @@
-from coarsify.src.calcs.calcs import pdb_line
 import os
+from coarsify.src.calcs import pdb_line
 
 
 def set_dir(sys, dir_name=None):

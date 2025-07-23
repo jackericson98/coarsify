@@ -1,6 +1,4 @@
 
-
-
 class Chain:
     def __init__(self, sys=None, atoms=None, residues=None, name=None):
         self.name = name

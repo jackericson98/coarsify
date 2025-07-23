@@ -14,10 +14,10 @@ def get_version():
             exec(f.read())
         version = locals()["__version__"]
         if version == "unknown":
-            return "1.0.0"
+            return "1.0.2"
         return version
     except:
-        return "1.0.0"
+        return "1.0.2"
 
 setup(
     name="coarsify",

@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
-# from System.sys_funcs.calcs.edge import calc_circ
 import numpy as np
-from matplotlib.patches import Circle
 
 
 # Set up plot function. Used to set the parameters for the plot

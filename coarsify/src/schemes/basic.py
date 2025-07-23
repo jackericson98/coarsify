@@ -1,10 +1,12 @@
-from coarsify.src.calcs.calcs import calc_com, calc_dist, calc_tetra_vol, get_time
 import time
-from System.sys_objs.ball import Ball
 import numpy as np
 from itertools import combinations
-from coarsify.src.calcs.verts import calc_vert
 from scipy.spatial import ConvexHull
+from coarsify.src.objects import Ball
+from coarsify.src.calcs import get_time
+from coarsify.src.calcs import calc_vert
+from coarsify.src.calcs import calc_dist
+from coarsify.src.calcs import calc_tetra_vol
 
 
 def minimum_enclosing_sphere_for_two(sphere1, sphere2):

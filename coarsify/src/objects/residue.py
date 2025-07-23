@@ -1,3 +1,4 @@
+
 class Residue:
     def __init__(self, atoms=None, name=None, sys=None, mol=None, sequence=None, seg_id=None, chain=None, element='Al'):
         """

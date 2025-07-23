@@ -1,11 +1,9 @@
-from os import path
-from coarsify.src.calcs.calcs import get_radius
-from System.sys_objs.chain import Sol, Chain
-from System.sys_objs.atom import make_atom
-from System.sys_objs.residue import Residue
 import numpy as np
 from pandas import DataFrame
-from coarsify.src.calcs.calcs import calc_dist
+from coarsify.src.objects import Sol, Chain
+from coarsify.src.objects import make_atom
+from coarsify.src.objects import Residue
+from coarsify.src.calcs import calc_dist
 from coarsify.src.tools.chemistry_interpreter import my_masses
 
 

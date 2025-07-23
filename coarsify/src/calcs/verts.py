@@ -1,6 +1,3 @@
-import numpy as np
-
-from coarsify.src.calcs.calcs import calc_dist
 from numpy import array, dot, isreal, linalg, roots
 from numba import jit
 
@@ -19,7 +16,7 @@ def calc_vert_abcfs_jit(locs, rads):
     r0_2 = r0 ** 2
     # Move all balls' locations to the base sphere for simpler calculation
     l0, l1, l2, l3 = locs[0], locs[1] - locs[0], locs[2] - locs[0], locs[3] - locs[0]
-    # Calculate our System of linear equations coefficients
+    # Calculate our system of linear equations coefficients
     a1, b1, c1, d1, f1 = 2 * l1[0], 2 * l1[1], 2 * l1[2], 2 * (r1 - r0), r0_2 - r1 ** 2 + l1[0] ** 2 + l1[
         1] ** 2 + l1[2] ** 2
     a2, b2, c2, d2, f2 = 2 * l2[0], 2 * l2[1], 2 * l2[2], 2 * (r2 - r0), r0_2 - r2 ** 2 + l2[0] ** 2 + l2[
@@ -55,7 +52,7 @@ def calc_vert_abcfs(locs, rads):
     r0_2 = r0 ** 2
     # Move all balls' locations to the base sphere for simpler calculation
     l0, l1, l2, l3 = locs[0], locs[1] - locs[0], locs[2] - locs[0], locs[3] - locs[0]
-    # Calculate our System of linear equations coefficients
+    # Calculate our system of linear equations coefficients
     a1, b1, c1, d1, f1 = 2 * l1[0], 2 * l1[1], 2 * l1[2], 2 * (r1 - r0), r0_2 - r1 ** 2 + l1[0] ** 2 + l1[
         1] ** 2 + l1[2] ** 2
     a2, b2, c2, d2, f2 = 2 * l2[0], 2 * l2[1], 2 * l2[2], 2 * (r2 - r0), r0_2 - r2 ** 2 + l2[0] ** 2 + l2[

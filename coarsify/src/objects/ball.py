@@ -1,3 +1,4 @@
+
 class Ball:
     def __init__(self, loc=None, rad=None, element=None, residues=None, atoms=None, name=None, chain=None, seq=None,
                  index=None, residue_subsection=None, mass=None):
