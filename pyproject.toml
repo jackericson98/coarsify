@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coarsify"
-version = "1.0.2"
+version = "1.0.3"
 description = "A Python tool for coarse-graining molecular structures"
 readme = "README.md"
 license = {text = "MIT"}
