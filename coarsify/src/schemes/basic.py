@@ -559,7 +559,7 @@ def coarsify(sys):
         # Get the residues atoms
         res_atoms = sys.atoms.iloc[res.atoms].to_dict(orient='records')
         # Get the percentage and print it
-        percentage = min((i / (len(sys.residues) - len(sys.sol.residues))) * 100, 100)
+        percentage = min(abs((i / (len(sys.residues) - len(sys.sol.residues))) * 100), 100)
         my_time = time.perf_counter() - start_time
         h, m, s = get_time(my_time)
         print("\rRun Time = {}:{:02d}:{:2.2f} - Coarsifying Residue {:>5}, {:<3} {:<5} - {:.2f} %"

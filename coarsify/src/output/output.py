@@ -203,24 +203,18 @@ def set_sys_dir(sys, dir_name=None, root_dir=None):
     """
 
     # Make sure a user_data path exists
-    if sys.vpy_dir is not None and not os.path.exists(sys.vpy_dir + "/Data/user_data"):
-        os.mkdir(sys.vpy_dir + "/Data/user_data")
-    elif sys.vpy_dir is None and not os.path.exists("./Data/user_data"):
-        if not os.path.exists('./Data'):
-            os.mkdir(os.path.abspath('.') + '/Data/user_data')
-        else:
-            os.mkdir(os.path.abspath('./Data') + '/user_data')
-
+    if sys.vpy_dir is not None:
+        root_dir = sys.vpy_dir + "/output"
     # If no outer directory was specified use the directory outside the current one
     if dir_name is None:
         if root_dir is not None:
             dir_name = root_dir + '/' + sys.name
         elif sys.vpy_dir is not None:
 
-            dir_name = sys.vpy_dir + "/Data/user_data/" + sys.name
+            dir_name = sys.vpy_dir + "/output/" + sys.name
         else:
-            dir_name = os.getcwd() + "/Data/user_data/" + sys.name
-    print(dir_name)
+            dir_name = os.getcwd() + "/output/" + sys.name
+
     # Catch for existing directories. Keep trying out directories until one doesn't exist
     i = 0
     while True:
