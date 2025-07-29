@@ -131,7 +131,6 @@ class System:
                     self.print_info()
                     self.coarsify()
                     self.set_sys_dir(root_dir=rooty_tooty)
-                    print(self.dir)
                     self.output(self.dir)
 
     def print_info(self):
@@ -194,7 +193,7 @@ class System:
         # Create the balls file
         write_balls(self)
         # Print out the directory that the files have been exported to
-        print("\nFiles exported to {}".format(self.dir))
+        print("Files exported to {}\n".format(self.dir))
 
     def set_dir(self, dir_name=None):
         """
