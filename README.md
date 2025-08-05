@@ -1,3 +1,7 @@
+<p>
+  <img width="1024" height="1024" alt="CoarsifyLogo2" src="https://github.com/user-attachments/assets/5e8cd4f7-21ed-4d39-83b7-65efc50ef78f" />
+</p>
+
 # Coarsify
 
 A Python tool for coarse-graining molecular structures from various file formats (.pdb, .gro, .mol, .cif, .xyz) into simplified representations using different coarse-graining schemes. Designed for researchers working with molecular dynamics simulations who need to approximate molecules as fewer spheres or perform structural analysis.
