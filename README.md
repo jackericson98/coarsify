@@ -6,6 +6,10 @@
 
 A Python tool for coarse-graining molecular structures from various file formats (.pdb, .gro, .mol, .cif, .xyz) into simplified representations using different coarse-graining schemes. Designed for researchers working with molecular dynamics simulations who need to approximate molecules as fewer spheres or perform structural analysis.
 
+<p align="center">
+  <img width="1263" height="397" alt="CoarsifyBanner-page001" src="https://github.com/user-attachments/assets/d21cef57-7d90-4ce3-94c9-096f8f119de4" />
+</p>
+
 ## Features
 
 - **Multiple Input Formats**: Supports PDB, GRO, MOL, CIF, and XYZ file formats
