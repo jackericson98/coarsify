@@ -58,12 +58,12 @@ pip install coarsify
 The GUI provides an intuitive interface for all coarse-graining operations:
 
 ```bash
-coarsify-gui
+coarsify
 ```
 
 Or if installed from source:
 ```bash
-python -m coarsify.src.gui.gui
+python -m coarsify
 ```
 
 **GUI Features:**
