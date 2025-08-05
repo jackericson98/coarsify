@@ -36,7 +36,7 @@ pip install coarsify
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/coarsify.git
+   git clone https://github.com/jackericson98/coarsify.git
    cd coarsify
    ```
 
@@ -185,4 +185,4 @@ If you use this tool in your research, please cite:
 
 ## Contact
 
-For questions, bug reports, or feature requests, please [create an issue](https://github.com/your-username/coarsify/issues) or contact [your-email@domain.com].
+For questions, bug reports, or feature requests, please [create an issue](https://github.com/your-username/coarsify/issues) or contact [jackericson98@gmail.com.com].
