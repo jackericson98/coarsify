@@ -14,10 +14,11 @@ if parent_dir not in sys.path:
 # Add everything in /api/ to the module search path.
 __path__ = [os.path.dirname(__file__), os.path.join(os.path.dirname(__file__), "api")]
 
+
 def main():
     """Main function for the coarsify CLI."""
     try:
-        from coarsify.src.system.system import System
+        from coarsify.src.system import System
         app = System()
         # Suppress the System object output by not returning it
         return 0
@@ -28,6 +29,7 @@ def main():
     except Exception as e:
         print(f"Error running coarsify: {e}")
         return 1
+
 
 if __name__ == '__main__':
     main()
