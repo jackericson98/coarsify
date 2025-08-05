@@ -1,5 +1,5 @@
 <p>
-  <img width="1024" height="1024" alt="CoarsifyLogo2" src="https://github.com/user-attachments/assets/5e8cd4f7-21ed-4d39-83b7-65efc50ef78f" />
+  <img width="300" height="300" alt="CoarsifyLogo2" src="https://github.com/user-attachments/assets/5e8cd4f7-21ed-4d39-83b7-65efc50ef78f" />
 </p>
 
 # Coarsify
