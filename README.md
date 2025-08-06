@@ -34,16 +34,10 @@ pip install coarsify
 
 ### From Source
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/jackericson98/coarsify.git
-   cd coarsify
-   ```
-
-2. Install in development mode:
-   ```bash
-   pip install -e .
-   ```
+```bash
+git clone https://github.com/jackericson98/coarsify.git
+cd coarsify
+```
 
 ### Prerequisites
 - Python 3.7 or higher
