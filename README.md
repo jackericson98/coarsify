@@ -1,30 +1,47 @@
+
 <p align="center">
   <img width="300" height="300" alt="CoarsifyLogo2" src="https://github.com/user-attachments/assets/5e8cd4f7-21ed-4d39-83b7-65efc50ef78f" />
 </p>
 
 # Coarsify
 
-A Python tool for coarse-graining molecular structures from various file formats (.pdb, .gro, .mol, .cif, .xyz) into simplified representations using different coarse-graining schemes. Designed for researchers working with molecular dynamics simulations who need to approximate molecules as fewer spheres or perform structural analysis.
+**Coarsify** is a Python package for coarse-graining molecular structures into simplified, sphere-based representations. It supports a wide range of input file formats and multiple coarse-graining schemes, allowing researchers to reduce molecular complexity for visualization, analysis, or simulation workflows.
 
 <p align="center">
   <img width="1263" height="397" alt="CoarsifyBanner-page001" src="https://github.com/user-attachments/assets/d21cef57-7d90-4ce3-94c9-096f8f119de4" />
 </p>
 
-## Features
+---
 
-- **Multiple Input Formats**: Supports PDB, GRO, MOL, CIF, and XYZ file formats
-- **Various Coarse-Graining Schemes**:
-  - **Average Distance**: Balls located at center of mass of residues with radius based on average distance of constituent atoms
-  - **Encapsulate Residues**: Balls that minimally encapsulate atoms in a residue
-  - **Side Chain/Backbone Split**: Separate beads for backbone and sidechain atoms
-  - **Martini**: Pre-processed PDB files using CG-MARTINI force field mapping
-- **Mass-Weighted Options**: Choose between mass-weighted or geometric center calculations
-- **Thermal Cushion**: Add additional radius to account for thermal motion
-- **Hydrogen Handling**: Option to include or exclude hydrogen atoms
-- **PyMOL Integration**: Automatic generation of PyMOL scripts for visualization
-- **Multiple Output Formats**: PDB files with coarse-grained structures and text files with coordinates and radii
+## 🚀 Features
 
-## Installation
+- **Multi-format Input Support**  
+  Supports common molecular structure formats: `.pdb`, `.gro`, `.mol`, `.cif`, `.xyz`
+
+- **Flexible Coarse-Graining Schemes**
+  - **Average Distance**: Center of mass with radius from atomic dispersion
+  - **Encapsulate Residues**: Minimal bounding sphere per residue
+  - **Side Chain/Backbone Split**: Separate backbone and sidechain beads
+  - **Martini Mapping**: MARTINI-compatible CG mappings
+
+- **PyMOL Integration**  
+  Automatically generate `.pml` scripts for visualization with correct radii and color coding
+
+- **Parameter Control**
+  - Mass-weighted or geometric centers
+  - Optional thermal cushion
+  - Hydrogen inclusion toggle
+  - Residue splitting for detailed structure
+
+- **Multiple Output Types**  
+  Export coarse-grained structures in `.pdb`, along with text-based coordinate and radius files
+
+- **Published on PyPI**  
+  Install with `pip install coarsify` and integrate with your Python workflows easily
+
+---
+
+## 🛠️ Installation
 
 ### From PyPI (Recommended)
 
@@ -37,135 +54,140 @@ pip install coarsify
 ```bash
 git clone https://github.com/jackericson98/coarsify.git
 cd coarsify
+pip install .
 ```
 
-### Prerequisites
-- Python 3.7 or higher
-- Required Python packages (automatically installed):
-  - numpy >= 1.24.0
-  - pandas >= 2.0.0
+### Requirements
+- Python 3.7+
+- `numpy >= 1.24.0`
+- `pandas >= 2.0.0`
 
-## Usage
+---
 
-### Graphical User Interface (Recommended)
+## 🧪 Usage
 
-The GUI provides an intuitive interface for all coarse-graining operations:
+### GUI (Recommended)
+
+Launch GUI from command line:
 
 ```bash
 coarsify
 ```
 
 Or if installed from source:
+
 ```bash
 python -m coarsify
 ```
 
-**GUI Features:**
-- File selection dialog for input structures
-- Dropdown menus for all parameters
-- Real-time parameter validation
-- Help system with detailed explanations
-- Output folder selection
+#### GUI Features
+- File selector for input structures
+- Dropdowns for all coarse-graining schemes and settings
+- Output location selector
+- Context-sensitive help
 
-### Command Line Interface
+---
 
-For batch processing or scripting:
+### CLI
+
+For scripting or batch processing:
 
 ```bash
 coarsify
 ```
 
-Or if installed from source:
+Or from source:
+
 ```bash
 python -m coarsify
 ```
 
-**CLI Options:**
-- Interactive prompts for all parameters
-- File dialog for input selection
-- Multiple output location options
+#### CLI Features
+- Interactive prompts for parameters
+- Dialog-based file selection
+- Compatible with headless environments
 
-## Coarse-Graining Schemes
+---
 
-### 1. Average Distance
-- **Description**: Creates balls at the center of mass of residues
-- **Radius**: Average distance of constituent atoms from the center
-- **Options**: Mass-weighted or geometric center calculation
-- **Best for**: General structural analysis and visualization
+## ⚙️ Coarse-Graining Schemes
 
-### 2. Encapsulate Residues
-- **Description**: Creates minimal spheres that contain all atoms in a residue
-- **Radius**: Minimum radius to encapsulate all residue atoms
-- **Best for**: Preserving molecular volume and shape
+| Scheme                  | Description                                                                 |
+|-------------------------|-----------------------------------------------------------------------------|
+| **Average Distance**    | Center of mass and average atom distance radius                            |
+| **Encapsulate Residues**| Minimal bounding sphere for all atoms in a residue                         |
+| **Side Chain / Backbone**| Separate backbone and sidechain beads using average or encapsulation       |
+| **Martini Mapping**     | Apply MARTINI force field mapping for simulations                          |
 
-### 3. Side Chain/Backbone Split
-- **Description**: Separates backbone and sidechain atoms into different beads
-- **Variants**: 
-  - Average Distance with split
-  - Encapsulate with split
-- **Best for**: Detailed analysis of protein structure and dynamics
+---
 
-### 4. Martini
-- **Description**: Applies CG-MARTINI force field mapping
-- **Best for**: Molecular dynamics simulations with MARTINI force field
+## 🔧 Parameters
 
-## Parameters
+- `thermal_cushion` – Adds buffer to radii (in Å) to simulate thermal motion
+- `mass_weighted` – Use mass-weighted center instead of geometric center
+- `include_hydrogens` – Include or exclude hydrogen atoms
+- `split_residue` – Generate separate beads for backbone and sidechain atoms
 
-- **Thermal Cushion**: Additional radius (in Angstroms) added to account for thermal motion
-- **Mass Weighted**: Use mass-weighted averaging for bead positions (vs. geometric center)
-- **Include Hydrogens**: Include hydrogen atoms in coarse-graining calculations
-- **Split Residue**: Separate backbone and sidechain into different beads
+---
 
-## Output Files
+## 📁 Output Files
 
-For each coarse-graining operation, the following files are generated:
+Each run generates:
 
-1. **`[name]_[scheme].pdb`**: Coarse-grained structure in PDB format
-2. **`[name]_base.pdb`**: Copy of the original input structure
-3. **`set_atom_colors.pml`**: PyMOL script for sphere visualization
-4. **`[name]_[scheme].txt`**: Text file with coordinates and radii of coarse-grained beads
+| File Name                 | Description                                      |
+|---------------------------|--------------------------------------------------|
+| `[name]_[scheme].pdb`     | Coarse-grained structure                         |
+| `[name]_base.pdb`         | Original input structure                         |
+| `set_atom_colors.pml`     | PyMOL script for radius/color settings           |
+| `[name]_[scheme].txt`     | Text file with (x, y, z, radius) for each bead   |
 
-## PyMOL Visualization
+---
 
-The tool automatically generates PyMOL scripts for easy visualization:
+## 🔬 PyMOL Visualization
 
-1. Load the coarse-grained PDB file in PyMOL
-2. Run the generated `set_atom_colors.pml` script
-3. The script will:
-   - Set appropriate sphere radii for each bead
-   - Apply color schemes based on residue types
-   - Configure visualization settings
+1. Open the output `.pdb` file in PyMOL  
+2. Run the `set_atom_colors.pml` script  
+3. The script:
+   - Sets sphere radii to match bead size
+   - Colors beads by residue or type
+   - Applies basic visual styling
 
-## Example Workflow
+---
 
-1. **Load Structure**: Select your PDB file through the GUI
-2. **Choose Scheme**: Select "Average Distance" for general analysis
-3. **Set Parameters**: 
-   - Thermal cushion: 1.0 Å
-   - Mass weighted: Yes
-   - Include hydrogens: No
-4. **Run Coarse-Graining**: Execute the process
-5. **Visualize**: Open the output PDB in PyMOL and run the generated script
+## 📌 Example Workflow
 
-## Integration with Vorpy
+```text
+1. Launch GUI and load a structure
+2. Select the "Encapsulate Residues" scheme
+3. Set thermal cushion to 1.0 Å, exclude hydrogens
+4. Click run to generate output files
+5. Visualize in PyMOL using the provided script
+```
 
-This tool was originally developed to work in conjunction with [Vorpy](https://github.com/your-username/vorpy) for Voronoi diagram analysis of molecular structures. The coarse-grained representations can be used as input for Voronoi tessellation analysis.
+---
 
-## Contributing
+## 🔗 Integration with Vorpy
 
-This tool is actively developed for molecular dynamics research. Contributions are welcome, particularly for:
-- Additional coarse-graining schemes
-- Support for new file formats
-- Performance optimizations
-- Documentation improvements
+Coarsify outputs are fully compatible with [Vorpy](https://github.com/your-username/vorpy), a tool for Voronoi diagram analysis. This allows downstream geometric or topological analysis of the coarse-grained structures.
 
-## License
+---
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+## 🤝 Contributing
 
-## Citation
+We welcome contributions for:
+- New coarse-graining methods
+- Additional input/output format support
+- Speed improvements
+- Documentation and tutorials
 
-If you use this tool in your research, please cite:
+---
+
+## 📄 License
+
+MIT License – see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📚 Citation
 
 ```bibtex
 @software{coarsify2024,
@@ -177,6 +199,8 @@ If you use this tool in your research, please cite:
 }
 ```
 
-## Contact
+---
 
-For questions, bug reports, or feature requests, please [create an issue](https://github.com/your-username/coarsify/issues) or contact [jackericson98@gmail.com.com].
+## 📬 Contact
+
+For bug reports or feature requests, [create an issue](https://github.com/jackericson98/coarsify/issues) or contact [jackericson98@gmail.com](mailto:jackericson98@gmail.com)
